@@ -16,3 +16,23 @@ private:
     const char* port = nullptr;
     const char* password = nullptr;
 };
+
+class Client
+{
+public:
+    Client(const std::string& nick);
+
+private:
+    std::string nick;
+    bool isOperator = false;
+};
+
+class Channel
+{
+public:
+    Channel(const std::string& name);
+
+private:
+    std::string name;
+    std::string topic;
+};
