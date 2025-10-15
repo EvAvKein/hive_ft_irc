@@ -36,10 +36,10 @@ fclean: clean
 re: fclean all
 
 test: all
-	./$(NAME) 3000 secret
+	./$(NAME) 6667 secret
 
 leaks: all
-	valgrind --track-fds=yes ./$(NAME) 3000 secret
+	valgrind --track-fds=yes ./$(NAME) 6667 secret
 
 .PHONY: all clean fclean re test
 .SECONDARY: $(OBJ)
