@@ -35,6 +35,12 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re
+test: all
+	./$(NAME) 3000 secret
+
+leaks: all
+	valgrind --track-fds=yes ./$(NAME) 3000 secret
+
+.PHONY: all clean fclean re test
 .SECONDARY: $(OBJ)
 -include $(DEP)
