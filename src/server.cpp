@@ -113,8 +113,9 @@ void Server::eventLoop(const char* host, const char* port)
 						size_t newline = input.find("\r\n");
 						if (newline == input.npos)
 							break;
-						input[newline] = '\0';
-						parseMessage(input.data());
+						auto begin = input.begin();
+						auto end = input.begin() + newline;
+						parseMessage(client, std::string_view(begin, end));
 						input.erase(0, newline + 2);
 					}
 				}
@@ -123,54 +124,58 @@ void Server::eventLoop(const char* host, const char* port)
 	}
 }
 
-void Server::parseMessage(std::string message)
+/**
+ * Parse a raw client message, then pass it to the message handler for the
+ * message's command, along with any parameters.
+ */
+void Server::parseMessage(Client& client, std::string_view message)
 {
 	// Array for holding the individual parts of the message.
 	int partCount = 0;
-	char* parts[MAX_MESSAGE_PARTS];
+	std::string_view parts[MAX_MESSAGE_PARTS];
 
 	// Split the message into parts.
-	size_t start = 0;
-	while (start < message.length()) {
+	size_t begin = 0;
+	while (begin < message.length()) {
 
-		// Find the start of the next part.
-		start = message.find_first_not_of(' ', start);
-		if (start == message.npos)
+		// Find the beginning of the next part.
+		begin = message.find_first_not_of(' ', begin);
+		if (begin == message.npos)
 			break; // Reached the end of the message.
 
 		// Find the end of the part (either the next space or the message end).
-		size_t end = message.find(' ', start);
+		size_t end = message.find(' ', begin);
 		if (end == message.npos)
 			end = message.length();
 
 		// Ignore tags (parts starting with an '@' sign).
-		if (message[start] != '@') {
+		if (message[begin] != '@') {
 
 			// Issue a warning if there are too many parts.
 			if (partCount == MAX_MESSAGE_PARTS) {
 				int length = message.length();
-				char* data = message.data();
+				const char* data = message.data();
 				logWarn("Message '%.*s' has too many parts", length, data);
 				return;
 			}
 
 			// If the part starts with a ':', treat the rest of the message as
 			// one big part.
-			if (message[start] == ':') {
+			if (message[begin] == ':') {
 				end = message.length();
-				start++; // Strip the ':' from the message.
+				begin++; // Strip the ':' from the message.
 			}
 
-			// Add the part to the array and null-terminate it.
-			parts[partCount++] = message.data() + start;
-			message[end] = '\0';
+			// Add the part to the array.
+			auto start = message.begin() + begin;
+			auto stop = message.begin() + end;
+			parts[partCount++] = std::string_view(start, stop);
 		}
 
-		// Start the next part at the end of this one.
-		start = end;
+		// Begin the next part at the end of this one.
+		begin = end;
 	}
 
-	// Handle the message only if it's not empty.
-	if (partCount > 0)
-		handleMessage(parts, partCount);
+	// Pass the message to its handler.
+	handleMessage(client, parts, partCount);
 }

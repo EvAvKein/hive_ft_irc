@@ -1,6 +1,8 @@
+#include <algorithm>
+#include <stdarg.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <stdarg.h>
+
 #include "irc.hpp"
 
 /**
@@ -87,10 +89,11 @@ int sendf(int socket, const char* format, ...)
 /**
   * Check if two null-terminated strings match, ignoring lower/upper case.
   */
-bool matchIgnoreCase(const char* a, const char* b)
+bool matchIgnoreCase(std::string_view a, std::string_view b)
 {
-	for (; *a || *b; a++, b++)
-		if (std::toupper(*a) != std::toupper(*b))
-			return false;
-	return true;
+	if (a.length() != b.length())
+		return false;
+	return std::equal(a.begin(), a.end(), b.begin(), [] (char i, char j) {
+		return std::toupper(i) == std::toupper(j);
+	});
 }
