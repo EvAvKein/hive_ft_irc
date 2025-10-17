@@ -50,6 +50,10 @@ public:
 	void eventLoop(const char* host, const char* port);
 
 private:
+	bool setNonBlocking(int fd);
+	void closeAndClean(const std::string& msg, int sockfd, struct addrinfo* result);
+	int  createListenSocket(const char* host, const char* port, bool isNonBlocking);
+	
 	void parseMessage(std::string message);
 	void handleMessage(char** params, int paramCount);
 

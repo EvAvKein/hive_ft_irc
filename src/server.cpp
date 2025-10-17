@@ -1,7 +1,6 @@
 #include <signal.h>
 
 #include "irc.hpp"
-#include "SocketUtils.hpp"
 
 Server::Server(const char* port, const char* password)
 	: _port(port), _password(password)
@@ -29,7 +28,7 @@ void Server::eventLoop(const char* host, const char* port)
 	struct epoll_event epollEvent, events[MAX_EVENTS];
 
 	// Create listen socket.
-	_serverFd = SocketUtils::createListenSocket(host, port, true);
+	_serverFd = createListenSocket(host, port, true);
 	if (_serverFd == -1)
 		throwf("Failed to create server socket: %s", strerror(errno));
 
@@ -72,7 +71,7 @@ void Server::eventLoop(const char* host, const char* port)
 				int clientFd = accept(_serverFd, (struct sockaddr*)&clientAddress, &clientAddressLength);
 				if (clientFd == -1)
 					throwf("Failed to accept connection: %s", strerror(errno));
-				SocketUtils::setNonBlocking(clientFd);
+				setNonBlocking(clientFd);
 
 				// Register the connection with epoll.
 				Client& client = _clients[clientFd];
@@ -122,27 +121,6 @@ void Server::eventLoop(const char* host, const char* port)
 			}
 		}
 	}
-}
-
-void Server::handleMessage(char** parts, int partCount)
-{
-	// Remove the command from the parameter array.
-	char* command = parts[0];
-	partCount--;
-	parts++;
-
-	// Send the message to the handler for that command.
-	if (matchIgnoreCase(command, "USER"))
-		return handleUser(parts, partCount);
-	if (matchIgnoreCase(command, "NICK"))
-		return handleNick(parts, partCount);
-	if (matchIgnoreCase(command, "PASS"))
-		return handlePass(parts, partCount);
-	if (matchIgnoreCase(command, "CAP"))
-		return handleCap(parts, partCount);
-	if (matchIgnoreCase(command, "JOIN"))
-		return handleJoin(parts, partCount);
-	logError("Unimplemented command '%s'", command);
 }
 
 void Server::parseMessage(std::string message)
@@ -195,34 +173,4 @@ void Server::parseMessage(std::string message)
 	// Handle the message only if it's not empty.
 	if (partCount > 0)
 		handleMessage(parts, partCount);
-}
-
-void Server::handleUser(char** params, int paramCount)
-{
-	(void) params, (void) paramCount;
-	logWarn("Unimplemented command: JOIN");
-}
-
-void Server::handleNick(char** params, int paramCount)
-{
-	(void) params, (void) paramCount;
-	logWarn("Unimplemented command: NICK");
-}
-
-void Server::handlePass(char** params, int paramCount)
-{
-	(void) params, (void) paramCount;
-	logWarn("Unimplemented command: PASS");
-}
-
-void Server::handleCap(char** params, int paramCount)
-{
-	(void) params, (void) paramCount;
-	logWarn("Unimplemented command: CAP");
-}
-
-void Server::handleJoin(char** params, int paramCount)
-{
-	(void) params, (void) paramCount;
-	logWarn("Unimplemented command: JOIN");
 }

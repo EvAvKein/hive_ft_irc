@@ -1,9 +1,8 @@
 #include <iostream>
 
 #include "irc.hpp"
-#include "SocketUtils.hpp"
 
-bool SocketUtils::setNonBlocking(int fd) {
+bool Server::setNonBlocking(int fd) {
 	int flg = fcntl(fd, F_GETFL, 0);
     if (flg < 0)
 		return false;
@@ -12,7 +11,7 @@ bool SocketUtils::setNonBlocking(int fd) {
     return true;
 }
 
-void SocketUtils::closeAndClean(const std::string& msg, int sockfd, struct addrinfo* result) {
+void Server::closeAndClean(const std::string& msg, int sockfd, struct addrinfo* result) {
     if (sockfd != -1)
 		close(sockfd);
     if (result)
@@ -28,7 +27,7 @@ accept() returns a new socket (client_fd) for that connection.
 You use this new socket to recv() and send().
 The listening socket itself never sends/receives application data. It just waits for more connections.
 */
-int SocketUtils::createListenSocket(const char* host, const char* port, bool isNonBlocking)
+int Server::createListenSocket(const char* host, const char* port, bool isNonBlocking)
 {
     int sockfd = -1;
     struct addrinfo hints{}, *result;
