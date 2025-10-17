@@ -1,53 +1,77 @@
 #include "irc.hpp"
 
-void Server::handleMessage(char** parts, int partCount)
+/**
+ * Handle any type of message. Removes the command from the parameter list, then
+ * calls the handler for that command with the remaining parameters.
+ */
+void Server::handleMessage(Client& client, std::string_view* params, int count)
 {
+	// Ignore empty messages.
+	if (count == 0)
+		return;
+
 	// Remove the command from the parameter array.
-	char* command = parts[0];
-	partCount--;
-	parts++;
+	std::string_view cmd = params[0];
+	params++;
+	count--;
 
 	// Send the message to the handler for that command.
-	if (matchIgnoreCase(command, "USER"))
-		return handleUser(parts, partCount);
-	if (matchIgnoreCase(command, "NICK"))
-		return handleNick(parts, partCount);
-	if (matchIgnoreCase(command, "PASS"))
-		return handlePass(parts, partCount);
-	if (matchIgnoreCase(command, "CAP"))
-		return handleCap(parts, partCount);
-	if (matchIgnoreCase(command, "JOIN"))
-		return handleJoin(parts, partCount);
-	logError("Unimplemented command '%s'", command);
+	if (matchIgnoreCase(cmd, "USER"))
+		return handleUser(client, params, count);
+	if (matchIgnoreCase(cmd, "NICK"))
+		return handleNick(client, params, count);
+	if (matchIgnoreCase(cmd, "PASS"))
+		return handlePass(client, params, count);
+	if (matchIgnoreCase(cmd, "CAP"))
+		return handleCap(client, params, count);
+	if (matchIgnoreCase(cmd, "JOIN"))
+		return handleJoin(client, params, count);
+
+	// Log any unimplemented commands, so that they can be added eventually.
+	logError("Unimplemented command '%.*s'", int(cmd.size()), cmd.data());
 }
 
-
-void Server::handleUser(char** params, int paramCount)
+/**
+ * Handle a USER message.
+ */
+void Server::handleUser(Client& client, std::string_view* params, int count)
 {
-	(void) params, (void) paramCount;
+	(void) client, (void) params, (void) count;
 	logWarn("Unimplemented command: JOIN");
 }
 
-void Server::handleNick(char** params, int paramCount)
+/**
+ * Handle a NICK message.
+ */
+void Server::handleNick(Client& client, std::string_view* params, int count)
 {
-	(void) params, (void) paramCount;
+	(void) client, (void) params, (void) count;
 	logWarn("Unimplemented command: NICK");
 }
 
-void Server::handlePass(char** params, int paramCount)
+/**
+ * Handle a PASS message.
+ */
+void Server::handlePass(Client& client, std::string_view* params, int count)
 {
-	(void) params, (void) paramCount;
+	(void) client, (void) params, (void) count;
 	logWarn("Unimplemented command: PASS");
 }
 
-void Server::handleCap(char** params, int paramCount)
+/**
+ * Handle a CAP message.
+ */
+void Server::handleCap(Client& client, std::string_view* params, int count)
 {
-	(void) params, (void) paramCount;
+	(void) client, (void) params, (void) count;
 	logWarn("Unimplemented command: CAP");
 }
 
-void Server::handleJoin(char** params, int paramCount)
+/**
+ * Handle a JOIN message.
+ */
+void Server::handleJoin(Client& client, std::string_view* params, int count)
 {
-	(void) params, (void) paramCount;
+	(void) client, (void) params, (void) count;
 	logWarn("Unimplemented command: JOIN");
 }

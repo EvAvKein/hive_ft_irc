@@ -5,6 +5,7 @@
 #include <netdb.h>
 #include <stdexcept>
 #include <string.h>
+#include <string_view>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -54,15 +55,15 @@ private:
 	void closeAndClean(const std::string& msg, int sockfd, struct addrinfo* result);
 	int  createListenSocket(const char* host, const char* port, bool isNonBlocking);
 	
-	void parseMessage(std::string message);
-	void handleMessage(char** params, int paramCount);
+	void parseMessage(Client& client, std::string_view message);
+	void handleMessage(Client& client, std::string_view* params, int count);
 
 	// Handlers for specific messages.
-	void handleUser(char** params, int paramCount);
-	void handleNick(char** params, int paramCount);
-	void handlePass(char** params, int paramCount);
-	void handleCap(char** params, int paramCount);
-	void handleJoin(char** params, int paramCount);
+	void handleUser(Client& client, std::string_view* params, int count);
+	void handleNick(Client& client, std::string_view* params, int count);
+	void handlePass(Client& client, std::string_view* params, int count);
+	void handleCap(Client& client, std::string_view* params, int count);
+	void handleJoin(Client& client, std::string_view* params, int count);
 
 	const char* _port = nullptr;
 	const char* _password = nullptr;
@@ -78,7 +79,7 @@ void logInfo(const char* format, ...) CHECK_FORMAT(1);
 void logWarn(const char* format, ...) CHECK_FORMAT(1);
 void logError(const char* format, ...) CHECK_FORMAT(1);
 int sendf(int socket, const char* format, ...) CHECK_FORMAT(2);
-bool matchIgnoreCase(const char* a, const char* b);
+bool matchIgnoreCase(std::string_view a, std::string_view b);
 
 /**
  * Throw an exception with an error message given using printf-style formatting
