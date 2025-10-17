@@ -131,7 +131,7 @@ void Server::receiveFromClient(Client& client)
 					break;
 				auto begin = input.begin();
 				auto end = input.begin() + newline;
-				parseMessage(client, std::string_view(begin, end));
+				parseMessage(client, std::string(begin, end));
 				input.erase(0, newline + 2);
 			}
 		}
@@ -185,11 +185,11 @@ void Server::sendToClient(Client& client)
  * Parse a raw client message, then pass it to the message handler for the
  * message's command, along with any parameters.
  */
-void Server::parseMessage(Client& client, std::string_view message)
+void Server::parseMessage(Client& client, std::string message)
 {
 	// Array for holding the individual parts of the message.
-	int partCount = 0;
-	std::string_view parts[MAX_MESSAGE_PARTS];
+	int argc = 0;
+	char* argv[MAX_MESSAGE_PARTS];
 
 	// Split the message into parts.
 	size_t begin = 0;
@@ -209,7 +209,7 @@ void Server::parseMessage(Client& client, std::string_view message)
 		if (message[begin] != '@') {
 
 			// Issue a warning if there are too many parts.
-			if (partCount == MAX_MESSAGE_PARTS) {
+			if (argc == MAX_MESSAGE_PARTS) {
 				int length = message.length();
 				const char* data = message.data();
 				logWarn("Message '%.*s' has too many parts", length, data);
@@ -223,10 +223,9 @@ void Server::parseMessage(Client& client, std::string_view message)
 				begin++; // Strip the ':' from the message.
 			}
 
-			// Add the part to the array.
-			auto start = message.begin() + begin;
-			auto stop = message.begin() + end;
-			parts[partCount++] = std::string_view(start, stop);
+			// Add the part to the array and null-terminate it.
+			argv[argc++] = message.data() + begin;
+			message[end] = '\0';
 		}
 
 		// Begin the next part at the end of this one.
@@ -234,5 +233,5 @@ void Server::parseMessage(Client& client, std::string_view message)
 	}
 
 	// Pass the message to its handler.
-	handleMessage(client, parts, partCount);
+	handleMessage(client, argc, argv);
 }
