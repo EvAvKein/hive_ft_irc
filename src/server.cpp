@@ -92,7 +92,7 @@ void Server::eventLoop(const char* host, const char* port)
 				Client& client = found->second;
 
 				// Exchange data with the client.
-				sendToClient(client);
+				client.send();
 				receiveFromClient(client);
 			}
 		}
@@ -134,49 +134,6 @@ void Server::receiveFromClient(Client& client)
 				parseMessage(client, std::string(begin, end));
 				input.erase(0, newline + 2);
 			}
-		}
-	}
-}
-
-void Server::sendReply(Client& client, const char* format, ...)
-{
-	// Get the length of the formatted string.
-	va_list args;
-	va_start(args, format);
-	int length = 1 + vsnprintf(nullptr, 0, format, args);
-	va_end(args);
-
-	// Get the actual formatted string.
-	va_start(args, format);
-	char buffer[length];
-	vsnprintf(buffer, length, format, args);
-	va_end(args);
-
-	// Send the formatted string with a line break at the end.
-	client.output.append(":server "); // Source.
-	client.output.append(buffer); // Contents of message.
-	client.output.append("\r\n"); // Line break.
-	sendToClient(client);
-}
-
-void Server::sendToClient(Client& client)
-{
-	// Send data to the client.
-	ssize_t bytes = 1;
-	while (bytes > 0) {
-		char* buffer = client.output.data();
-		size_t length = client.output.size();
-		bytes = send(client.socket, buffer, length, 0);
-
-		// Handle errors.
-		if (bytes == -1) {
-			if (errno == EAGAIN)
-				break; // No more space for output.
-			throwf("Failed to send to client: %s", strerror(errno));
-
-		// Remove the sent data from the output buffer.
-		} else {
-			client.output.erase(0, bytes);
 		}
 	}
 }

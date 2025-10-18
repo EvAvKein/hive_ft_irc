@@ -67,75 +67,60 @@ void Server::handleCap(Client& client, int argc, char** argv)
 	logWarn("Unimplemented command: CAP");
 }
 
-bool isValidChannelName(const char* name)
-{
-	if (*name == '\0' || (*name != '#' && *name != '&'))
-		return false;
-	for (; *name != '\0'; name++)
-		if (*name == ' ' || *name == ',' || *name == '\a')
-			return false;
-	return true;
-}
-
 /**
  * Handle a JOIN message.
  */
 void Server::handleJoin(Client& client, int argc, char** argv)
 {
-	// Check that we have enough parameters.
+	// Check that enough parameters were provided.
 	const char* nick = client.nick.c_str();
 	if (argc < 1 || argc > 2)
-		return sendReply(client, "461 %s JOIN :Not enough parameters", nick);
+		return client.sendLine("461 ", nick, " JOIN :Not enough parameters");
 
 	// Join a list of channels.
-	if (argc == 1 || argc == 2) {
-		char noKeys = '\0';
-		char* name = argv[0];
-		char* key = argc >= 2 ? argv[1] : &noKeys;
-		while (*name != '\0') {
+	char noKeys[] = ""; // Empty list used if no keys were given.
+	char* names = argv[0]; // List of channel names ("#abc,#def")
+	char* keys = argc == 2 ? argv[1] : noKeys; // List of keys ("key1,key2")
+	while (*names != '\0') {
 
-			// Get the next channel name and key in the comma-separated list.
-			int name_length = strcspn(name, ",");
-			int key_length = strcspn(key, ",");
-			if (name[name_length] == ',')
-				name[name_length++] = '\0';
-			if (key[key_length] == ',')
-				key[key_length++] = '\0';
+		// Get the next channel name and key in the comma-separated list.
+		char* name = nextListItem(names);
+		char* key = nextListItem(keys);
 
-			// Check that a valid channel name was given.
-			if (!isValidChannelName(name)) {
-				sendReply(client, "403 %s %s :No such channel", nick, name);
-
-			// If there's no channel by that name, create it.
-			} else {
-				Channel* channel = findChannelByName(name);
-				if (channel == nullptr) {
-					logInfo("Creating new channel '%s'", name);
-					channel = &_channels[name]; // Makes a new empty channel.
-					channel->name = name;
-				}
-
-				// Only continue if the client is not already in the channel.
-				if (channel->members.find(nick) == channel->members.end()) {
-
-					// Stop if the key didn't match.
-					if (channel->key != key) {
-						sendReply(client, "%s %s :Cannot join channel (+k)", nick, name);
-
-					// Otherwise, join the channel.
-					} else {
-						const char* topic = channel->topic.c_str();
-						logInfo("%s joined channel %s", nick, name);
-						channel->members[nick] = &client;
-						sendReply(client, ":%s JOIN %s", nick, name);
-						sendReply(client, "332 %s %s :%s", nick, name, topic);
-						// TODO: Reply with list of channel users.
-					}
-				}
-			}
-
-			name += name_length;
-			key += key_length;
+		// Check that a valid channel name was given.
+		if (!Channel::isValidName(name)) {
+			client.sendLine("403 ", nick, " ", name, " :No such channel");
+			continue;
 		}
+
+		// If there's no channel by that name, create it.
+		Channel* channel = findChannelByName(name);
+		if (channel == nullptr) {
+			logInfo("Creating new channel %s", name);
+			channel = &_channels[name]; // Create a new empty channel.
+			channel->name = name;
+		}
+
+		// Skip if the client is already in the channel.
+		if (channel->members.find(nick) != channel->members.end())
+			continue;
+
+		// Issue an error message if the key doesn't match.
+		if (channel->key != key) {
+			client.sendLine(nick, " ", name, " :Cannot join channel (+k)");
+			continue;
+		}
+
+		// Join the channel and send a list of channel members.
+		const char* topic = channel->topic.c_str();
+		logInfo("%s joined channel %s", nick, name);
+		channel->members[nick] = &client;
+		client.sendLine(":", nick, " JOIN ", name);
+		client.sendLine("332 ", nick, " ", name, " :", topic);
+		client.send("353 ", nick, " ", channel->symbol, " ", name, " :");
+		for (auto& [_, member]: channel->members)
+			client.send(member->prefix, member->nick, " ");
+		client.sendLine(); // Line break at the end of the member list.
+		client.sendLine("366 ", nick, " ", name, " :End of /NAMES list");
 	}
 }

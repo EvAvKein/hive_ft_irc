@@ -25,22 +25,60 @@
 // of the format string parameter.
 #define CHECK_FORMAT(x) __attribute__((format(printf, x, x + 1)))
 
-struct Client
+class Client
 {
-	int socket = -1;			// The socket used for the client's connection.
-	std::string nick;			// The client's nickname.
-	std::string user;			// The client's user name.
-	bool isOperator = false;	// True if the client is an operator.
-	std::string input;			// Buffered data from recv().
-	std::string output;			// Buffered data for send().
+public:
+	int socket = -1;			// The socket used for the client's connection
+	std::string nick;			// The client's nickname
+	std::string user;			// The client's user name
+	std::string input;			// Buffered data from recv()
+	std::string output;			// Buffered data for send()
+	const char *prefix = "";	// Prefix symbol (either "" or "@")
+
+	// Send a string to the client.
+	void send(const std::string_view& string);
+
+	// Send a single value of numeric type (using std::to_string).
+	template <typename Type>
+	void send(const Type& value)
+	{
+		send(std::string_view(std::to_string(value)));
+	}
+
+	// Send multiple values by recursively calling other send() functions.
+	template <typename First, typename... Rest>
+	void send(const First& first, const Rest&... rest)
+	{
+		send(first);
+		send(rest...);
+	}
+
+	// Send multiple values and add a CRLF line break at the end.
+	template <typename... Arguments>
+	void sendLine(const Arguments&... arguments)
+	{
+		send(arguments...); // Send all the arguments.
+		send("\r\n"); // Add a newline at the end.
+	}
+
+	// Types that must be converted to string_view to be sent.
+	void send(char character) { send(std::string_view(&character, 1)); }
+	void send(char* string) { send(std::string_view(string)); }
+	void send(const char* string = "") { send(std::string_view(string)); }
+	void send(const std::string& string) { send(std::string_view(string)); }
 };
 
-struct Channel
+class Channel
 {
-	std::string name;						// The name of the channel.
-	std::string topic;						// The current topic.
-	std::string key;						// Key needed to join the channel.
-	std::map<std::string, Client*> members;	// Clients joined to this channel.
+public:
+
+	char symbol = '=';						// The channel symbol (one of '=', '@', '*')
+	std::string name;						// The name of the channel
+	std::string topic;						// The current topic
+	std::string key;						// Key needed to join the channel
+	std::map<std::string, Client*> members;	// Clients joined to this channel
+
+	static bool isValidName(const char* name);
 };
 
 class Server
@@ -57,9 +95,6 @@ private:
 	int  createListenSocket(const char* host, const char* port, bool isNonBlocking);
 
 	void receiveFromClient(Client& client);
-	void sendToClient(Client& client);
-
-	void sendReply(Client& client, const char* format, ...) CHECK_FORMAT(3);
 
 	void parseMessage(Client& client, std::string message);
 	void handleMessage(Client& client, int argc, char** argv);
@@ -89,6 +124,7 @@ void logInfo(const char* format, ...) CHECK_FORMAT(1);
 void logWarn(const char* format, ...) CHECK_FORMAT(1);
 void logError(const char* format, ...) CHECK_FORMAT(1);
 bool matchIgnoreCase(const char* a, const char* b);
+char* nextListItem(char*& list);
 
 /**
  * Throw an exception with an error message given using printf-style formatting

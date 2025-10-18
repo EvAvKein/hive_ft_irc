@@ -74,3 +74,17 @@ bool matchIgnoreCase(const char* a, const char* b)
 			return false;
 	return true;
 }
+
+/**
+ * For a string containing a comma-separated list of items (like "abc,def,ghi"),
+ * null-terminate the first item in the list and return it. Also move the list
+ * forward to the next item in the list.
+ */
+char* nextListItem(char*& list)
+{
+	char* firstItem = list;
+	list += strcspn(list, ",");
+	if (*list == ',')
+		*list++ = '\0';
+	return firstItem;
+}
