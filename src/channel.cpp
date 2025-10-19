@@ -1,4 +1,4 @@
-#include "irc.hpp"
+#include "channel.hpp"
 
 /**
  * Determine if a string contains a valid channel name. A channel must start

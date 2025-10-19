@@ -1,9 +1,13 @@
-#include <algorithm>
-#include <stdarg.h>
-#include <sys/socket.h>
+#include <cstring>
 #include <unistd.h>
 
-#include "irc.hpp"
+#include "utility.hpp"
+
+// ANSI escape codes for nicer terminal output.
+#define ANSI_RED	"\x1b[31m"
+#define ANSI_GREEN	"\x1b[32m"
+#define ANSI_YELLOW "\x1b[33m"
+#define ANSI_RESET	"\x1b[0m"
 
 /**
  * Close a file descriptor, but only if it's valid. Then reset it to an invalid

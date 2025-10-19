@@ -1,4 +1,8 @@
+#include "channel.hpp"
+#include "client.hpp"
 #include "irc.hpp"
+#include "server.hpp"
+#include "utility.hpp"
 
 /**
  * Handle any type of message. Removes the command from the parameter list, then

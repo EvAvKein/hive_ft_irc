@@ -1,0 +1,48 @@
+#pragma once
+
+#include <string>
+#include <string_view>
+
+class Client
+{
+public:
+	int socket = -1;			// The socket used for the client's connection
+	std::string nick;			// The client's nickname
+	std::string user;			// The client's user name
+	std::string input;			// Buffered data from recv()
+	std::string output;			// Buffered data for send()
+	std::string prefix;			// Prefix symbol (either "" or "@")
+	bool isRegistered = false;	// Whether the client completed registration.
+
+	// Send a string to the client.
+	void send(const std::string_view& string);
+
+	// Send a single value of numeric type (using std::to_string).
+	template <typename Type>
+	void send(const Type& value)
+	{
+		send(std::string_view(std::to_string(value)));
+	}
+
+	// Send multiple values by recursively calling other send() functions.
+	template <typename First, typename... Rest>
+	void send(const First& first, const Rest&... rest)
+	{
+		send(first);
+		send(rest...);
+	}
+
+	// Send multiple values and add a CRLF line break at the end.
+	template <typename... Arguments>
+	void sendLine(const Arguments&... arguments)
+	{
+		send(arguments...); // Send all the arguments.
+		send("\r\n"); // Add a newline at the end.
+	}
+
+	// Types that must be converted to string_view to be sent.
+	void send(char character) { send(std::string_view(&character, 1)); }
+	void send(char* string) { send(std::string_view(string)); }
+	void send(const char* string = "") { send(std::string_view(string)); }
+	void send(const std::string& string) { send(std::string_view(string)); }
+};

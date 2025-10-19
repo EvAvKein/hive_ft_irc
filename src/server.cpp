@@ -1,11 +1,18 @@
-#include <signal.h>
+#include <csignal>
+#include <cstring>
+#include <netdb.h>
+#include <sys/epoll.h>
 
+#include "channel.hpp"
+#include "client.hpp"
 #include "irc.hpp"
+#include "server.hpp"
+#include "utility.hpp"
 
 Server::Server(const char* port, const char* password)
 	: _port(port), _password(password)
 {
-	logInfo("Starting server with password '%s'", _password);
+	logInfo("Starting server with password '%s'", _password.c_str());
 }
 
 Server::~Server()
@@ -44,7 +51,7 @@ void Server::eventLoop(const char* host, const char* port)
 		throwf("Failed to add server socket to epoll: %s", strerror(errno));
 
 	// Begin the event loop.
-	logInfo("Listening on port %s", _port);
+	logInfo("Listening on port %s", _port.c_str());
 	while (true) {
 
 		// Poll available events.

@@ -1,5 +1,5 @@
 NAME := ircserv
-CXXFLAGS := -Wall -Wextra -Werror -std=c++20 -MMD -MP -ggdb
+CXXFLAGS := -Wall -Wextra -Werror -std=c++20 -MMD -MP -ggdb -Iinc
 
 # File names.
 SRC := $(wildcard src/**.cpp)      # Source files
