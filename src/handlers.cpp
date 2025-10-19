@@ -73,9 +73,12 @@ void Server::handleCap(Client& client, int argc, char** argv)
 void Server::handleJoin(Client& client, int argc, char** argv)
 {
 	// Check that enough parameters were provided.
-	const char* nick = client.nick.c_str();
 	if (argc < 1 || argc > 2)
-		return client.sendLine("461 ", nick, " JOIN :Not enough parameters");
+		return client.sendLine("461 ", client.nick, " JOIN :Not enough parameters");
+
+	// Check that the client is registered.
+	if (!client.isRegistered)
+		return client.sendLine("451 ", client.nick, " :You have not registered");
 
 	// Join a list of channels.
 	char noKeys[] = ""; // Empty list used if no keys were given.
@@ -89,7 +92,7 @@ void Server::handleJoin(Client& client, int argc, char** argv)
 
 		// Check that a valid channel name was given.
 		if (!Channel::isValidName(name)) {
-			client.sendLine("403 ", nick, " ", name, " :No such channel");
+			client.sendLine("403 ", client.nick, " ", name, " :No such channel");
 			continue;
 		}
 
@@ -102,25 +105,26 @@ void Server::handleJoin(Client& client, int argc, char** argv)
 		}
 
 		// Skip if the client is already in the channel.
-		if (channel->members.find(nick) != channel->members.end())
+		if (channel->members.find(client.nick) != channel->members.end())
 			continue;
 
 		// Issue an error message if the key doesn't match.
 		if (channel->key != key) {
-			client.sendLine(nick, " ", name, " :Cannot join channel (+k)");
+			client.sendLine(client.nick, " ", name, " :Cannot join channel (+k)");
 			continue;
 		}
 
-		// Join the channel and send a list of channel members.
-		const char* topic = channel->topic.c_str();
-		logInfo("%s joined channel %s", nick, name);
-		channel->members[nick] = &client;
-		client.sendLine(":", nick, " JOIN ", name);
-		client.sendLine("332 ", nick, " ", name, " :", topic);
-		client.send("353 ", nick, " ", channel->symbol, " ", name, " :");
+		// Join the channel.
+		logInfo("%s joined channel %s", client.nick.c_str(), name);
+		channel->members[client.nick] = &client;
+
+		// Send a join message, the topic, and a list of channel members.
+		client.sendLine(":", client.nick, " JOIN ", name);
+		client.sendLine("332 ", client.nick, " ", name, " :", channel->topic);
+		client.send("353 ", client.nick, " ", channel->symbol, " ", name, " :");
 		for (auto& [_, member]: channel->members)
 			client.send(member->prefix, member->nick, " ");
 		client.sendLine(); // Line break at the end of the member list.
-		client.sendLine("366 ", nick, " ", name, " :End of /NAMES list");
+		client.sendLine("366 ", client.nick, " ", name, " :End of /NAMES list");
 	}
 }

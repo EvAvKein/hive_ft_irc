@@ -33,7 +33,8 @@ public:
 	std::string user;			// The client's user name
 	std::string input;			// Buffered data from recv()
 	std::string output;			// Buffered data for send()
-	const char *prefix = "";	// Prefix symbol (either "" or "@")
+	std::string prefix;			// Prefix symbol (either "" or "@")
+	bool isRegistered = false;	// Whether the client completed registration.
 
 	// Send a string to the client.
 	void send(const std::string_view& string);
