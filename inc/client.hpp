@@ -21,7 +21,7 @@ public:
 	template <typename Type>
 	void send(const Type& value)
 	{
-		send(std::string_view(std::to_string(value)));
+		send(std::to_string(value));
 	}
 
 	// Send multiple values by recursively calling other send() functions.

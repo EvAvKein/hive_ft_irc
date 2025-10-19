@@ -12,7 +12,7 @@
 Server::Server(const char* port, const char* password)
 	: _port(port), _password(password)
 {
-	logInfo("Starting server with password '%s'", _password.c_str());
+	logInfo("Starting server with password ", _password);
 }
 
 Server::~Server()
@@ -51,7 +51,7 @@ void Server::eventLoop(const char* host, const char* port)
 		throwf("Failed to add server socket to epoll: %s", strerror(errno));
 
 	// Begin the event loop.
-	logInfo("Listening on port %s", _port.c_str());
+	logInfo("Listening on port ", _port);
 	while (true) {
 
 		// Poll available events.
@@ -87,7 +87,7 @@ void Server::eventLoop(const char* host, const char* port)
 				epollEvent.data.fd = clientFd;
 				if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, clientFd, &epollEvent) == -1)
 					throwf("Failed to add client socket to epoll: %s", strerror(errno));
-				logInfo("Client connected (fd = %d)", clientFd);
+				logInfo("Client connected (fd = ", clientFd, ")");
 
 			// Exchange data with a client.
 			} else {
@@ -122,7 +122,7 @@ void Server::receiveFromClient(Client& client)
 
 		// Handle client disconnection.
 		} else if (bytes == 0) {
-			logInfo("Client disconnected (fd = %d)", client.socket);
+			logInfo("Client disconnected (fd = ", client.socket, ")");
 			epoll_ctl(_epollFd, EPOLL_CTL_DEL, client.socket, nullptr);
 			safeClose(client.socket);
 			_clients.erase(client.socket);
@@ -174,9 +174,7 @@ void Server::parseMessage(Client& client, std::string message)
 
 			// Issue a warning if there are too many parts.
 			if (argc == MAX_MESSAGE_PARTS) {
-				int length = message.length();
-				const char* data = message.data();
-				logWarn("Message '%.*s' has too many parts", length, data);
+				logWarn("Message has too many parts:", message);
 				return;
 			}
 

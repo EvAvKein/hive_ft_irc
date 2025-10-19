@@ -1,13 +1,8 @@
 #include <cstring>
+#include <iostream>
 #include <unistd.h>
 
 #include "utility.hpp"
-
-// ANSI escape codes for nicer terminal output.
-#define ANSI_RED	"\x1b[31m"
-#define ANSI_GREEN	"\x1b[32m"
-#define ANSI_YELLOW "\x1b[33m"
-#define ANSI_RESET	"\x1b[0m"
 
 /**
  * Close a file descriptor, but only if it's valid. Then reset it to an invalid
@@ -22,50 +17,12 @@ void safeClose(int& fd)
 }
 
 /**
- * Write a message to stderr with a message-specific prefix. Used internally by
- * the other logging functions.
+ * Print a string to standard output. This function is ultimately called by all
+ * the other variants of the log() function.
  */
-void log(const char* prefix, const char* format, va_list& args)
+void log(const std::string_view& string)
 {
-	fprintf(stderr, "%s " ANSI_RESET, prefix);
-	vfprintf(stderr, format, args);
-	fprintf(stderr, "\n");
-}
-
-/**
- * Write a green info message to stderr using printf-style formatting syntax. A
- * line break is added to the end of the message.
- */
-void logInfo(const char* format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	log(ANSI_GREEN "[INFO]", format, args);
-	va_end(args);
-}
-
-/**
- * Write a yellow warning message to stderr using printf-style formatting
- * syntax. A line break is added to the end of the message.
- */
-void logWarn(const char* format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	log(ANSI_YELLOW "[WARN]", format, args);
-	va_end(args);
-}
-
-/**
- * Write a red error message to stderr using printf-style formatting syntax. A
- * line break is added to the end of the message.
- */
-void logError(const char* format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	log(ANSI_RED "[ERROR]", format, args);
-	va_end(args);
+	std::cout << string;
 }
 
 /**

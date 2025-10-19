@@ -32,7 +32,7 @@ void Server::handleMessage(Client& client, int argc, char** argv)
 	}
 
 	// Log any unimplemented commands, so that they can be added eventually.
-	logError("Unimplemented command '%s'", argv[0]);
+	logError("Unimplemented command: ", argv[0]);
 }
 
 /**
@@ -103,7 +103,7 @@ void Server::handleJoin(Client& client, int argc, char** argv)
 		// If there's no channel by that name, create it.
 		Channel* channel = findChannelByName(name);
 		if (channel == nullptr) {
-			logInfo("Creating new channel %s", name);
+			logInfo("Creating new channel ", name);
 			channel = &_channels[name]; // Create a new empty channel.
 			channel->name = name;
 		}
@@ -119,7 +119,7 @@ void Server::handleJoin(Client& client, int argc, char** argv)
 		}
 
 		// Join the channel.
-		logInfo("%s joined channel %s", client.nick.c_str(), name);
+		logInfo(client.nick, " joined channel ", name);
 		channel->members[client.nick] = &client;
 
 		// Send a join message, the topic, and a list of channel members.
