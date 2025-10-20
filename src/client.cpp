@@ -51,11 +51,10 @@ void Client::handleNick(int argc, char** argv)
 void Client::handlePass(int argc, char** argv)
 {
 	// TODO: Implement 462 ?
-	log::warn("Unimplemented command: PASS");
 	if (argc != 1)
-		return sendLine("461 ", nick, " JOIN :Not enough parameters");
+		return sendLine("461 ", nick, " PASS :Not enough parameters");
 	if (server->correctPassword(argv[0]) == false)
-		return sendLine("464 ", nick, " JOIN :Password incorrect");
+		return sendLine("464 ", nick, " PASS :Password incorrect");
 	authorized = true;
 	// TODO: Do I need to implement a success message?
 }
