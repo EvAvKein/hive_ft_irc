@@ -41,8 +41,23 @@ void Client::handleUser(int argc, char** argv)
  */
 void Client::handleNick(int argc, char** argv)
 {
-	(void) argc, (void) argv;
-	log::warn("Unimplemented command: NICK");
+	if (argc == 0)
+		return sendLine("431 ", nick, " NICK :No nickname given");
+	if (argc > 2)
+		return sendLine("461 ", nick, " NICK :Not enough parameters");
+
+	std::string_view newNick = argv[0];
+	if (server->findClientByName(newNick))
+		return sendLine("433 ", nick, " NICK :Nickname is already in use");
+	if ((newNick[0] == ':') || (newNick[0] == '#')
+		|| std::string_view(newNick).find(' ') != std::string::npos)
+		return sendLine("432 ", nick, " NICK :Erroneus nickname");
+
+	for (Channel* channel: channels)
+		for	(Client* member: channel->members)
+			if (member != this)
+				member->sendLine(":", nick, " NICK ", newNick);
+	nick = newNick;
 }
 
 /**
