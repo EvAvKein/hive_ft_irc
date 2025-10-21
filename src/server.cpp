@@ -169,6 +169,7 @@ void Server::parseMessage(Client& client, std::string message)
 {
 	// Array for holding the individual parts of the message.
 	int argc = 0;
+	log::info("Message: " ,message);
 	char* argv[MAX_MESSAGE_PARTS];
 
 	// Split the message into parts.

@@ -13,11 +13,14 @@ public:
 	int socket = -1;				// The socket used for the client's connection
 	std::string nick;				// The client's nickname
 	std::string user;				// The client's user name
+	std::string realname;			// The client's real name
+
 	bool authorized = false;		// Whether the client gave the correct password
 	std::string input;				// Buffered data from recv()
 	std::string output;				// Buffered data for send()
 	std::string prefix;				// Prefix symbol (either "" or "@")
 	bool isRegistered = false;		// Whether the client completed registration.
+	bool isPassValid = false;
 	bool disconnected = false;		// Set to true when the client is disconnected
 	Server* server = nullptr;		// Pointer to the server object.
 	std::set<Channel*>	channels;	// All channels the client is joined to.
@@ -25,6 +28,7 @@ public:
 	void joinChannel(Channel* channel);
 	void leaveChannel(Channel* channel);
 
+	int	 handleUserParams(int argc, char** argv);
 	void handleUser(int argc, char** argv);
 	void handleNick(int argc, char** argv);
 	void handlePass(int argc, char** argv);

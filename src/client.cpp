@@ -8,6 +8,9 @@
 #include "server.hpp"
 #include "utility.hpp"
 
+#define SUCCESS 0
+#define FAIL 1
+
 /**
  * Send a string of text to the client. All the other variants of the
  * Client::send method call this one to do their business.
@@ -26,15 +29,63 @@ void Client::send(const std::string_view& string)
 		output.erase(0, bytes);
 	}
 }
+/**
+ * Handle a USERPARAM message.
+ */
+int Client::handleUserParams(int argc, char** argv)
+{
+	// Must have passed the correct password first
+	if (!authorized) {
+		sendLine("464 :Password incorrect");
+		log::warn(user, "Password is not yet set");
+		return FAIL;
+	}
+
+	// Already registered
+	if (isRegistered) {
+		sendLine("462 :You may not reregister");
+		log::warn(nick, "Already registered user tried USER again");
+		return FAIL;
+	}
+
+	// USER <username> <0> <*> <realname>
+	if (argc < 4 || argv[0] == NULL || argv[3] == NULL) {
+		sendLine("461 USER :Not enough parameters");
+		return FAIL;
+	}
+
+	return SUCCESS;
+}
 
 /**
  * Handle a USER message.
  */
 void Client::handleUser(int argc, char** argv)
 {
-	(void) argc, (void) argv;
-	log::warn("Unimplemented command: USER");
+	if (handleUserParams(argc, argv) == FAIL)
+		return;
+
+	// Save username and real name
+	user = argv[0];
+	realname = argv[3];
+	if (!realname.empty() && realname[0] == ':')
+		realname.erase(0, 1); // remove the ':' prefix if present
+
+	log::info(nick, " registered USER as ", user, " (realname: ", realname, ")");
+
+	// Mark client as registered if NICK already provided
+	if (!nick.empty() && !user.empty())
+		isRegistered = true;
+
+	// Send welcome messages when registration completes
+	if (isRegistered) {
+		sendLine("001 ", nick, " :Welcome to the Internet Relay Network ", nick, "!", user, "@localhost");
+		sendLine("002 ", nick, " :Your host is ft_irc, running version 1.0");
+		sendLine("003 ", nick, " :This server was created today");
+		sendLine("004 ", nick, " ft_irc Version 1.0");
+	}
 }
+
 
 /**
  * Handle a NICK message.
@@ -65,12 +116,14 @@ void Client::handleNick(int argc, char** argv)
  */
 void Client::handlePass(int argc, char** argv)
 {
-	// TODO: Implement 462 ?
+	if (isRegistered)
+		return sendLine("462 ", nick.empty() ? "*" : nick, " :You may not reregister");
 	if (argc != 1)
 		return sendLine("461 ", nick, " PASS :Not enough parameters");
 	if (server->correctPassword(argv[0]) == false)
 		return sendLine("464 ", nick, " PASS :Password incorrect");
 	authorized = true;
+	log::info("Password is correct!!!");
 	// TODO: Do I need to implement a success message?
 }
 

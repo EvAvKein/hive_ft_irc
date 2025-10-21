@@ -40,3 +40,4 @@ char* nextListItem(char*& list)
 		*list++ = '\0';
 	return firstItem;
 }
+
