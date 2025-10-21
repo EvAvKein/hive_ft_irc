@@ -198,6 +198,21 @@ void Client::handlePing(int argc, char** argv)
 }
 
 /**
+ * Handle a QUIT message.
+ */
+void Client::handleQuit(int argc, char** argv)
+{
+	// Check that enough parameters were provided.
+	if (argc != 1)
+		return sendLine("461 ", nick, " JOIN :Not enough parameters");
+
+	// The <reason> for disconnecting must be prefixed with "Quit:" when sent
+	// from the server.
+	std::string reason = "Quit: " + std::string(argv[0]);
+	server->disconnectClient(*this, reason);
+}
+
+/**
  * Makes a client a member of a channel without checking for authorization. Does
  * nothing if the client is already joined to the channel.
  */
