@@ -18,6 +18,7 @@ public:
 	std::string output;				// Buffered data for send()
 	std::string prefix;				// Prefix symbol (either "" or "@")
 	bool isRegistered = false;		// Whether the client completed registration.
+	bool disconnected = false;		// Set to true when the client is disconnected
 	Server* server = nullptr;		// Pointer to the server object.
 	std::set<Channel*>	channels;	// All channels the client is joined to.
 
@@ -31,6 +32,7 @@ public:
 	void handlePart(int argc, char** argv);
 	void handleJoin(int argc, char** argv);
 	void handlePing(int argc, char** argv);
+	void handleQuit(int argc, char** argv);
 
 	// Send a string to the client.
 	void send(const std::string_view& string);
