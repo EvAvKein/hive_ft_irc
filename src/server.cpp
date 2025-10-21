@@ -105,6 +105,20 @@ void Server::eventLoop(const char* host, const char* port)
 				receiveFromClient(client);
 			}
 		}
+
+		// Remove any clients that were disconnected during the last iteration
+		// of the event loop. It's important not to do this in the middle of the
+		// send/receive part of the event loop, when the socket is still
+		// actively used.
+		for (auto i = clients.begin(); i != clients.end();) {
+			if (i->second.disconnected) {
+				close(i->first);
+				log::info("Client disconnected (fd = ", i->first, ")");
+				i = clients.erase(i);
+			} else {
+				++i;
+			}
+		}
 	}
 }
 
@@ -221,6 +235,7 @@ void Server::handleMessage(Client& client, int argc, char** argv)
 		{"PART", &Client::handlePart},
 		{"JOIN", &Client::handleJoin},
 		{"PING", &Client::handlePing},
+		{"QUIT", &Client::handleQuit},
 	};
 
 	// Send the message to the handler for that command.
@@ -234,9 +249,53 @@ void Server::handleMessage(Client& client, int argc, char** argv)
 	log::error("Unimplemented command: ", argv[0]);
 }
 
+/**
+ * Check if a string matches the server password.
+ */
 bool Server::correctPassword(std::string_view pass)
 {
 	return password == pass;
+}
+
+/**
+ * For any two clients, check if those clients share at least one channel.
+ */
+bool Server::clientsOnSameChannel(const Client& a, const Client& b)
+{
+	for (Channel* channel: a.channels)
+		if (b.channels.find(channel) != b.channels.end())
+			return true;
+	return false;
+}
+
+/**
+ * Disconnect a client from the server. Removes the client from all channels
+ * they're part of, and also sends a QUIT message to notify others that the
+ * client disappeared.
+ */
+void Server::disconnectClient(Client& client, std::string_view reason)
+{
+	// Send an ERROR message to the disconnected client, with the reason for the
+	// disconnection.
+	client.sendLine("ERROR :", reason);
+
+	// Send QUIT messages to let other clients know the client disconnected.
+	// The <source> of the message is the disconnected client.
+	for (auto& [_, other]: clients)
+		if (clientsOnSameChannel(client, other))
+			other.sendLine(":", client.nick, " QUIT :", reason);
+
+	// Remove the client from all its channels.
+	for (Channel* channel: client.channels)
+		client.leaveChannel(channel);
+
+	// Unsubscribe from epoll events for the client connection.
+	int socket = client.socket;
+	epoll_ctl(epollFd, EPOLL_CTL_DEL, socket, nullptr);
+
+	// Mark the client as disconnected. The connection is actually closed before
+	// the next iteration of the event loop.
+	client.disconnected = true;
 }
 
 /**

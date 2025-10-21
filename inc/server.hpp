@@ -2,6 +2,7 @@
 
 #include <map>
 #include <string>
+#include <string_view>
 
 class Channel;
 class Client;
@@ -17,6 +18,8 @@ public:
 	Channel* newChannel(const std::string& name);
 	void eventLoop(const char* host, const char* port);
 	bool correctPassword(std::string_view pass);
+	bool clientsOnSameChannel(const Client& a, const Client& b);
+	void disconnectClient(Client& client, std::string_view reason);
 
 private:
 	bool setNonBlocking(int fd);
