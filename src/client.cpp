@@ -81,10 +81,10 @@ void Client::handleNick(int argc, char** argv)
 	std::string_view newNick = argv[0];
 
 	if (server->findClientByName(newNick))
-		return sendLine("433 ", nick, " NICK :Nickname is already in use");
+		return sendLine("433 ", nick, " ", newNick, " :Nickname is already in use");
 	if ((newNick[0] == ':') || (newNick[0] == '#')
 		|| std::string_view(newNick).find(' ') != std::string::npos)
-		return sendLine("432 ", nick, " NICK :Erroneus nickname");
+		return sendLine("432 ", nick, " ", newNick, " :Erroneus nickname");
 
 	if (isRegistered)
 		for (Channel* channel: channels)
