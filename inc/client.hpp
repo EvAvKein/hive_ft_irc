@@ -15,15 +15,14 @@ public:
 	std::string user;				// The client's user name
 	std::string realname;			// The client's real name
 
-	bool authorized = false;		// Whether the client gave the correct password
 	std::string input;				// Buffered data from recv()
 	std::string output;				// Buffered data for send()
 	std::string prefix;				// Prefix symbol (either "" or "@")
-	bool isRegistered = false;		// Whether the client completed registration.
-	bool isPassValid = false;
-	bool disconnected = false;		// Set to true when the client is disconnected
-	Server* server = nullptr;		// Pointer to the server object.
-	std::set<Channel*>	channels;	// All channels the client is joined to.
+	bool isRegistered = false;		// Whether the client completed registration
+	bool isPassValid = false;		// Whether the client gave the correct password
+	bool isDisconnected = false;	// Set to true when the client is disconnected
+	Server* server = nullptr;		// Pointer to the server object
+	std::set<Channel*>	channels;	// All channels the client is joined to
 
 	void joinChannel(Channel* channel);
 	void leaveChannel(Channel* channel);
@@ -69,4 +68,7 @@ public:
 	void send(char* string) { send(std::string_view(string)); }
 	void send(const char* string = "") { send(std::string_view(string)); }
 	void send(const std::string& string) { send(std::string_view(string)); }
+
+
+	void handleRegistrationComplete();
 };
