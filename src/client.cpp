@@ -18,7 +18,7 @@ void Client::send(const std::string_view& string)
 	output.append(string);
 	ssize_t bytes = 1;
 	while (bytes > 0 && output.find("\r\n") != output.npos) {
-		bytes = ::send(socket, output.data(), output.size(), 0);
+		bytes = ::send(socket, output.data(), output.size(), MSG_DONTWAIT);
 		if (bytes == -1) {
 			if (errno == EAGAIN)
 				break;

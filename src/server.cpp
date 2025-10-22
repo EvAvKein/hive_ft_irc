@@ -36,7 +36,7 @@ void Server::eventLoop(const char* host, const char* port)
 	struct epoll_event epollEvent, events[MAX_EVENTS];
 
 	// Create listen socket.
-	serverFd = createListenSocket(host, port, true);
+	serverFd = createListenSocket(host, port);
 	if (serverFd == -1)
 		fail("Failed to create server socket: ", strerror(errno));
 
@@ -79,7 +79,6 @@ void Server::eventLoop(const char* host, const char* port)
 				int clientFd = accept(serverFd, (struct sockaddr*)&clientAddress, &clientAddressLength);
 				if (clientFd == -1)
 					fail("Failed to accept connection: ", strerror(errno));
-				setNonBlocking(clientFd);
 
 				// Register the connection with epoll.
 				Client& client = clients[clientFd];
@@ -128,7 +127,7 @@ void Server::receiveFromClient(Client& client)
 	char buffer[512];
 	ssize_t bytes = 1;
 	while (bytes > 0) {
-		bytes = recv(client.socket, buffer, sizeof(buffer), 0);
+		bytes = recv(client.socket, buffer, sizeof(buffer), MSG_DONTWAIT);
 
 		// Handle errors.
 		if (bytes == -1) {

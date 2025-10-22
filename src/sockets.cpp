@@ -1,5 +1,4 @@
 #include <cstring>
-#include <fcntl.h>
 #include <netdb.h>
 #include <unistd.h>
 
@@ -7,15 +6,6 @@
 #include "log.hpp"
 #include "server.hpp"
 #include "utility.hpp"
-
-bool Server::setNonBlocking(int fd) {
-	int flg = fcntl(fd, F_GETFL, 0);
-	if (flg < 0)
-		return false;
-	if (fcntl(fd, F_SETFL, flg | O_NONBLOCK) == -1)
-		return false;
-	return true;
-}
 
 void Server::closeAndClean(const std::string& msg, int sockfd, struct addrinfo* result) {
 	if (sockfd != -1)
@@ -33,7 +23,7 @@ accept() returns a new socket (client_fd) for that connection.
 You use this new socket to recv() and send().
 The listening socket itself never sends/receives application data. It just waits for more connections.
 */
-int Server::createListenSocket(const char* host, const char* port, bool isNonBlocking)
+int Server::createListenSocket(const char* host, const char* port)
 {
 	int sockfd = -1;
 	struct addrinfo hints = {}, *result;
@@ -66,10 +56,6 @@ int Server::createListenSocket(const char* host, const char* port, bool isNonBlo
 	}
 	if (listen(sockfd, MAX_BACKLOG) < 0)
 		closeAndClean("Failed to listen on socket", sockfd, result);
-
-	if (isNonBlocking && !setNonBlocking(sockfd))
-		closeAndClean("Failed to set non-blocking", sockfd, result);
-
 	freeaddrinfo(result);
 	return sockfd;
 }

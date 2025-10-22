@@ -39,9 +39,8 @@ public:
 	ChannelIterators allChannels() { return {channels.begin(), channels.end()}; }
 
 private:
-	bool setNonBlocking(int fd);
 	void closeAndClean(const std::string& msg, int sockfd, struct addrinfo* result);
-	int  createListenSocket(const char* host, const char* port, bool isNonBlocking);
+	int  createListenSocket(const char* host, const char* port);
 
 	void receiveFromClient(Client& client);
 
