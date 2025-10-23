@@ -143,3 +143,12 @@ void Channel::removeMemberLimit()
 {
 	memberLimit = 0;
 }
+
+/**
+ * Check if the channel is full, i.e. it has a member limit, and that limit has
+ * been reached.
+ */
+bool Channel::isFull() const
+{
+	return memberLimit != 0 && static_cast<int>(members.size()) >= memberLimit;
+}
