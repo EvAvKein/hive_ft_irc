@@ -226,7 +226,7 @@ void Client::handleJoin(int argc, char** argv)
 
 		// Issue an error message if the key doesn't match.
 		if (channel->key != key) {
-			sendLine(nick, " ", channel->name, " :Cannot join channel (+k)");
+			sendLine("475 ", nick, " ", name, " :Cannot join channel (+k)");
 			continue;
 		}
 
@@ -236,13 +236,14 @@ void Client::handleJoin(int argc, char** argv)
 			continue;
 		}
 
+		// Issue an error if the channel member limit has been reached.
+		if (channel->isFull()) {
+			sendLine("471 ", nick, " ", name, " :Cannot join channel (+l)");
+			continue;
+		}
+
 		// Join the channel.
 		channel->addMember(*this);
-
-		// If the client is the first one to join the channel, make that client
-		// the operator for that channel.
-		if (channel->members.size() == 1)
-			channel->addOperator(*this);
 
 		// Send a join message, the topic, and a list of channel members.
 		sendLine(":", nick, " JOIN ", name);

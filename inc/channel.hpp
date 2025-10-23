@@ -36,6 +36,7 @@ public:
 
 	void setMemberLimit(int limit);
 	void removeMemberLimit();
+	bool isFull() const;
 
 	bool isInvited(std::string_view invited);
 	void addInvited(std::string_view invited);
