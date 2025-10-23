@@ -36,6 +36,7 @@ public:
 
 	void setMemberLimit(int limit);
 	void removeMemberLimit();
+	bool isFull() const;
 
 	std::string getModes() const;
 	static bool isValidName(std::string_view name);

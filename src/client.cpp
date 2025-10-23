@@ -1,4 +1,4 @@
-#include <string.h>
+#include <cstring>
 #include <sys/socket.h>
 
 #include "channel.hpp"
@@ -19,7 +19,7 @@ void Client::send(const std::string_view& string)
 	while (bytes > 0 && output.find("\r\n") != output.npos) {
 		bytes = ::send(socket, output.data(), output.size(), MSG_DONTWAIT);
 		if (bytes == -1) {
-			if (errno == EAGAIN)
+			if (errno == EAGAIN || errno == ECONNRESET)
 				break;
 			fail("Failed to send to client: ", strerror(errno));
 		}
@@ -50,8 +50,6 @@ void Client::handleUser(int argc, char** argv)
 	// Save username and real name
 	user = argv[0];
 	realname = argv[3];
-	if (realname[0] == ':')
-		realname.erase(0, 1); // remove the ':' prefix if present
 
 	log::info(nick, " registered USER as ", user, " (realname: ", realname, ")");
 
@@ -119,16 +117,14 @@ void Client::handlePass(int argc, char** argv)
 
 void Client::handleRegistrationComplete()
 {
-	if (!nick.empty() && !user.empty() && isPassValid)
-		isRegistered = true;
-
-	if (isRegistered)
-	{
-		sendLine("001 ", nick, " :Welcome to the ", SERVER_NAME, " Network ", nick, "!", user, "@localhost");
-		sendLine("002 ", nick, " :Your host is ", SERVER_NAME, ", running version 1.0");
-		sendLine("003 ", nick, " :This server was created ", server->getLaunchTime());
-		sendLine("004 ", nick, " ", SERVER_NAME, " Version 1.0");
-	}
+	if (nick.empty() || user.empty() || !isPassValid)
+		return;
+	isRegistered = true;
+	fullname = nick + "!" + user + "@" + host;
+	sendLine("001 ", nick, " :Welcome to the ", SERVER_NAME, " Network ", fullname);
+	sendLine("002 ", nick, " :Your host is ", SERVER_NAME, ", running version 1.0");
+	sendLine("003 ", nick, " :This server was created ", server->getLaunchTime());
+	sendLine("004 ", nick, " ", SERVER_NAME, " Version 1.0");
 }
 
 /**
@@ -169,19 +165,20 @@ void Client::handlePart(int argc, char** argv)
 		}
 
 		// Check that the client is actually on that channel.
-		if (channels.find(channel) == channels.end()) {
+		if (!channel->isMember(*this)) {
 			sendLine("442 ", nick, " ", channelName, " :You're not on that channel");
 			continue;
 		}
 
 		// Leave the channel and send a PART message to the client.
 		channel->removeMember(*this);
-		sendLine("PART ", channel->name, reason);
+		sendLine(":", fullname, " PART ", channel->name);
 
 		// Send PART messages to all members of the channel, with the departed
 		// client's nickname as the <source>.
 		for (Client* member: channel->members)
-			member->sendLine(":", nick, " PART", channel->name, reason);
+			member->sendLine(":", fullname, " PART ", channel->name, reason);
+		log::info(nick, " left channel ", channel->name);
 	}
 }
 
@@ -225,21 +222,36 @@ void Client::handleJoin(int argc, char** argv)
 
 		// Issue an error message if the key doesn't match.
 		if (channel->key != key) {
-			sendLine(nick, " ", name, " :Cannot join channel (+k)");
+			sendLine("475 ", nick, " ", name, " :Cannot join channel (+k)");
+			continue;
+		}
+
+		// Issue an error if the channel member limit has been reached.
+		if (channel->isFull()) {
+			sendLine("471 ", nick, " ", name, " :Cannot join channel (+l)");
+			continue;
+		}
+
+		// Issue an error if the channel is invite-only, and the client hasn't
+		// been invited.
+		if (channel->inviteOnly) { // FIXME: Check for invite
+			sendLine("473 ", nick, " ", name, " :Cannot join channel (+i)");
 			continue;
 		}
 
 		// Join the channel.
 		channel->addMember(*this);
 
-		// If the client is the first one to join the channel, make that client
-		// the operator for that channel.
-		if (channel->members.size() == 1)
-			channel->addOperator(*this);
+		// Send a JOIN message to the joining client.
+		sendLine(":", fullname, " JOIN ", name);
 
-		// Send a join message, the topic, and a list of channel members.
-		sendLine(":", nick, " JOIN ", name);
-		sendLine("332 ", nick, " ", name, " :", channel->topic);
+		// Send the topic (with timestamp) if there is one.
+		if (!channel->topic.empty()) {
+			sendLine("332 ", nick, " ", name, " :", channel->topic);
+			sendLine("333 ", nick, " ", channel->name, " ", channel->topicChangeStr);
+		}
+
+		// Send a list of members in the channel.
 		send("353 ", nick, " ", channel->symbol, " ", name, " :");
 		for (Client* member: channel->members) {
 			const char* prefix = channel->isOperator(*member) ? "@" : "";
@@ -247,6 +259,11 @@ void Client::handleJoin(int argc, char** argv)
 		}
 		sendLine(); // Line break at the end of the member list.
 		sendLine("366 ", nick, " ", name, " :End of /NAMES list");
+
+		// Notify other members of the channel that someone joined.
+		for (Client* member: channel->members)
+			if (member != this)
+				member->sendLine(":", fullname, " JOIN ", channel->name);
 	}
 }
 
@@ -299,10 +316,6 @@ bool Client::handlePrivMsgParams(int argc, char** argv) {
 	return true;
 }
 
-
-//format      :Nickname!Username@hostOfSender
-//example     :abostrom!AxelTest@localhost
-
 void Client::handlePrivMsg(int argc, char** argv)
 {
 	if (handlePrivMsgParams(argc, argv) == false)
@@ -334,7 +347,7 @@ void Client::handlePrivMsg(int argc, char** argv)
 			// Broadcast the message to all channel members. can make this a  method
 			for (Client* member: channel->members) {
 				if (member != this) {
-					member->send(":", nick, "!", user, "@localhost PRIVMSG ", target, " :");
+					member->send(":", fullname, " PRIVMSG ", target, " :");
 					for (int i = 1; i < argc; i++)
 						member->send(i == 1 ? "" : " ", argv[i]);
 					member->sendLine();
@@ -351,7 +364,7 @@ void Client::handlePrivMsg(int argc, char** argv)
 			}
 
 			// Send all parts of the message.
-			client->send(":", nick, "!", user, "@localhost PRIVMSG ", target, " :");
+			client->send(":", fullname, " PRIVMSG ", target, " :");
 			for (int i = 1; i < argc; i++)
 				client->send(i == 1 ? "" : " ", argv[i]);
 			client->sendLine();
@@ -368,6 +381,11 @@ void Client::setChannelMode(Channel& channel, char* mode, char* args)
 	std::string modeOut;
 	std::string argsOut;
 	char lastSign = 0;
+
+	// Special case to keep irssi happy: Handle 'b' by sending an empty ban list
+	// for the channel.
+	if (std::strcmp(mode, "b") == 0)
+		return sendLine("368 ", nick, " ", channel.name, " :End of channel ban list");
 
 	// Parse the mode string.
 	char sign = 0;
@@ -520,17 +538,17 @@ void Client::handleMode(int argc, char** argv)
 		if (argc < 2)
 			return sendLine("221 ", nick, " :"); // No user modes implemented.
 
-		// User modes are not implemented, so we just send the appropriate
-		// error for every character in the mode string.
+		// User modes are not implemented, but we ignore the +i mode just to
+		// keep irssi happy.
 		char* mode = argv[1];
 		while (*mode) {
-			char sign = *mode++; // Should be either '+' or '-'.
-			if (sign != '+' && sign != '-')
-				return sendLine("472 ", nick, " ", sign, " :is unknown mode char to me");
+			mode += *mode == '+' || *mode == '-';
 			if (!std::isalpha(*mode))
 				return sendLine("472 ", nick, " ", *mode, " :is unknown mode char to me");
-			for (; std::isalpha(*mode); mode++)
-				 sendLine("502 ", nick, " :Unknown MODE flag");
+			for (; std::isalpha(*mode); mode++) {
+				if (*mode++ != 'i')
+					sendLine("502 ", nick, " :Unknown MODE flag");
+			}
 		}
 	}
 }
@@ -572,10 +590,11 @@ void Client::handleWho(int argc, char** argv)
 	return sendLine("315 ", nick, " ", argv[0], " :End of WHO list");
 }
 
+/**
+ * Handle a TOPIC command.
+ */
 void Client::handleTopic(int argc, char** argv)
 {
-	// TODO: Handle operator permission
-
 	if (argc < 1 || argc > 2)
 		return sendLine("461 ", nick, " NICK :Not enough parameters");
 
@@ -585,6 +604,7 @@ void Client::handleTopic(int argc, char** argv)
 
 	if (argc == 1)
 	{
+		log::info("Sent topic: ", channel->topic);
 		if (!channel->findClientByName(nick))
 			return sendLine("442 ", channel->name, " :You're not on that channel");
 
@@ -598,14 +618,21 @@ void Client::handleTopic(int argc, char** argv)
 
 	assert(argc == 2);
 
-	if (!channel->findClientByName(nick))
+	if (!channel->isMember(*this))
 		return sendLine("442 ", channel->name, " :You're not on that channel");
 
-	// if (channel.MODE == PROTECTED && NOT_OPERATOR)
-	// 	return sendLine("482 ", CHANNEL, " :You're not channel operator"); // Intentional grammar mistake, according to spec :)
+	// Check that the client has permissions to change the topic.
+	if (channel->restrictTopic && !channel->isOperator(*this))
+		return sendLine("482 ", nick, " ", channel->name, " :You're not channel operator");
 
+	// Change the topic.
 	channel->topic = argv[1];
 	channel->topicChangeStr = std::string(nick).append(" ").append(Server::getTimeString());
+	log::info("Changed topic of ", channel->name, " to: ", channel->topic);
+
+	// Notify all channel members (including the sender) of the change.
+	for (Client* member: channel->members)
+		member->sendLine("TOPIC ", channel->name, " :", channel->topic);
 }
 
 //forced removal of a user from a channel.
@@ -664,7 +691,7 @@ void Client::handleKick(int argc, char** argv)
 
     // broadcast kick message
     for (Client* member: channel->members) {
-		member->send(":", nick, "!", user, "@", host, " ");
+		member->send(":", fullname, " ");
         member->send("KICK ", channelName, " ", targetToKick);
 		member->sendLine(" :", reason);
 	}
