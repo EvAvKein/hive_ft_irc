@@ -608,25 +608,6 @@ void Client::handleTopic(int argc, char** argv)
 	channel->topicChangeStr = std::string(nick).append(" ").append(Server::getTimeString());
 }
 
-/**
- * Makes a client a member of a channel without checking for authorization. Does
- * nothing if the client is already joined to the channel.
- */
-void Client::joinChannel(Channel* channel) // TODO: Deleteable? Kept this during merge conflict but might be unnecessary
-{
-	assert(channel != nullptr);
-	assert(channels.contains(channel) == !!channel->findClientByName(nick));
-	if (channels.contains(channel)) {
-		log::warn(nick, " is already in channel ", channel->name);
-	} else {
-		channel->members.insert(this);
-		channels.insert(channel);
-		log::info(nick, " was added to channel ", channel->name);
-	}
-	assert(channels.find(channel) != channels.end());
-	assert(channel->findClientByName(nick) == this);
-}
-
 //forced removal of a user from a channel.
 //:PUPU!p@localhost KICK #channel eve :being too rigorous
 //:<kicker>!<user>@localhost KICK <channel> <targetToKick> :<reason>
