@@ -528,17 +528,19 @@ void Client::handleMode(int argc, char** argv)
 		if (argc < 2)
 			return sendLine("221 ", nick, " :"); // No user modes implemented.
 
-		// User modes are not implemented, so we just send the appropriate
-		// error for every character in the mode string.
+		// User modes are not implemented, but we send an empty ban list for the
+		// 'b' mode just to keep irssi happy.
 		char* mode = argv[1];
 		while (*mode) {
-			char sign = *mode++; // Should be either '+' or '-'.
-			if (sign != '+' && sign != '-')
-				return sendLine("472 ", nick, " ", sign, " :is unknown mode char to me");
+			mode += *mode == '+' || *mode == '-';
 			if (!std::isalpha(*mode))
 				return sendLine("472 ", nick, " ", *mode, " :is unknown mode char to me");
-			for (; std::isalpha(*mode); mode++)
-				 sendLine("502 ", nick, " :Unknown MODE flag");
+			while (std::isalpha(*mode)) {
+				if (*mode++ == 'b') // Send an empty ban list.
+					sendLine("368 ", nick, " ", target, " :End of channel ban list");
+				else
+					sendLine("502 ", nick, " :Unknown MODE flag");
+			}
 		}
 	}
 }
