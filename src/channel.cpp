@@ -143,3 +143,18 @@ void Channel::removeMemberLimit()
 {
 	memberLimit = 0;
 }
+
+bool Channel::isInvited(std::string_view invited)
+{
+	return (this->invited.contains(std::string(invited)));
+}
+
+void Channel::addInvited(std::string_view invited)
+{
+	this->invited.insert(std::string(invited));
+}
+
+void Channel::resetInvited()
+{
+	invited.clear();
+}

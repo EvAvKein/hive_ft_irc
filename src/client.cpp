@@ -1,4 +1,5 @@
 #include <string.h>
+#include <string_view>
 #include <sys/socket.h>
 
 #include "channel.hpp"
@@ -389,6 +390,7 @@ void Client::setChannelMode(Channel& channel, char* mode, char* args)
 					if (channel.inviteOnly == (sign == '+'))
 						continue;
 					channel.inviteOnly = sign == '+';
+					channel.resetInvited();
 				} break;
 
 				// +t: Toggle restrict topic mode.
@@ -675,4 +677,36 @@ void Client::handleKick(int argc, char** argv)
     channel->removeMember(*clientToKick);
 
     log::info("KICK: ", nick, " kicked ", targetToKick, " from ", channelName);
+}
+
+
+void Client::handleInvite(int argc, char** argv)
+{
+	if (argc != 2)
+		return sendLine("461 ", nick, " INVITE :Not enough parameters");
+
+	const std::string_view invitedName = argv[0];
+
+	if (!server->findClientByName(invitedName))
+		return sendLine("406 ", invitedName, " :There was no such nickname");
+
+	Channel* channel = server->findChannelByName(argv[1]);
+
+	if (!channel)
+		return sendLine("403 ", invitedName, " :No such channel");
+
+	if (!channel->findClientByName(nick))
+		return sendLine("442 ", nick, " ", channel->name, " :You're not on that channel");
+
+	Client* invitedClient = channel->findClientByName(invitedName);
+
+	if (invitedClient)
+		return sendLine("443 ", nick, " ", invitedName, " ", channel->name, " :is already on channel");
+
+	if (channel->inviteOnly && !channel->isOperator(*this))
+		return sendLine("482 ", nick, " ", channel->name, " :You're not channel operator");
+
+	channel->addInvited(invitedName);
+	sendLine("341 ", channel->name, " ", nick);
+	invitedClient->sendLine("INVITE ", invitedName, " ", channel->name);
 }
