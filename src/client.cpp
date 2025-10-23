@@ -1,6 +1,8 @@
 #include <string.h>
 #include <string_view>
 #include <cstring>
+#include <string.h>
+#include <string_view>
 #include <sys/socket.h>
 
 #include "channel.hpp"
@@ -725,10 +727,12 @@ void Client::handleInvite(int argc, char** argv)
 	if (!channel->findClientByName(nick))
 		return sendLine("442 ", nick, " ", channel->name, " :You're not on that channel");
 
-	if (channel->findClientByName(invitedName))
+	Client* invitedClient = channel->findClientByName(invitedName);
+
+	if (invitedClient)
 		return sendLine("443 ", nick, " ", invitedName, " ", channel->name, " :is already on channel");
 
-	if (!channel->isOperator(*this))
+	if (channel->inviteOnly && !channel->isOperator(*this))
 		return sendLine("482 ", nick, " ", channel->name, " :You're not channel operator");
 
 	channel->addInvited(invitedName);
