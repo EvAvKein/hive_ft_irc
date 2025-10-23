@@ -19,7 +19,7 @@ void Client::send(const std::string_view& string)
 	while (bytes > 0 && output.find("\r\n") != output.npos) {
 		bytes = ::send(socket, output.data(), output.size(), MSG_DONTWAIT);
 		if (bytes == -1) {
-			if (errno == EAGAIN)
+			if (errno == EAGAIN || errno == ECONNRESET)
 				break;
 			fail("Failed to send to client: ", strerror(errno));
 		}
