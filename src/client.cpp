@@ -51,8 +51,6 @@ void Client::handleUser(int argc, char** argv)
 	// Save username and real name
 	user = argv[0];
 	realname = argv[3];
-	if (realname[0] == ':')
-		realname.erase(0, 1); // remove the ':' prefix if present
 
 	log::info(nick, " registered USER as ", user, " (realname: ", realname, ")");
 
@@ -120,16 +118,14 @@ void Client::handlePass(int argc, char** argv)
 
 void Client::handleRegistrationComplete()
 {
-	if (!nick.empty() && !user.empty() && isPassValid)
-		isRegistered = true;
-
-	if (isRegistered)
-	{
-		sendLine("001 ", nick, " :Welcome to the ", SERVER_NAME, " Network ", nick, "!", user, "@localhost");
-		sendLine("002 ", nick, " :Your host is ", SERVER_NAME, ", running version 1.0");
-		sendLine("003 ", nick, " :This server was created ", server->getLaunchTime());
-		sendLine("004 ", nick, " ", SERVER_NAME, " Version 1.0");
-	}
+	if (nick.empty() || user.empty() || !isPassValid)
+		return;
+	isRegistered = true;
+	fullname = nick + "!" + user + "@" + host;
+	sendLine("001 ", nick, " :Welcome to the ", SERVER_NAME, " Network ", fullname);
+	sendLine("002 ", nick, " :Your host is ", SERVER_NAME, ", running version 1.0");
+	sendLine("003 ", nick, " :This server was created ", server->getLaunchTime());
+	sendLine("004 ", nick, " ", SERVER_NAME, " Version 1.0");
 }
 
 /**
@@ -177,12 +173,12 @@ void Client::handlePart(int argc, char** argv)
 
 		// Leave the channel and send a PART message to the client.
 		channel->removeMember(*this);
-		sendLine(":", nick, "!", user, "@", host, " PART ", channel->name);
+		sendLine(":", fullname, " PART ", channel->name);
 
 		// Send PART messages to all members of the channel, with the departed
 		// client's nickname as the <source>.
 		for (Client* member: channel->members)
-			member->sendLine(":", nick, "!", user, "@", host, " PART ", channel->name, reason);
+			member->sendLine(":", fullname, " PART ", channel->name, reason);
 		log::info(nick, " left channel ", channel->name);
 	}
 }
@@ -308,10 +304,6 @@ bool Client::handlePrivMsgParams(int argc, char** argv) {
 	return true;
 }
 
-
-//format      :Nickname!Username@hostOfSender
-//example     :abostrom!AxelTest@localhost
-
 void Client::handlePrivMsg(int argc, char** argv)
 {
 	if (handlePrivMsgParams(argc, argv) == false)
@@ -343,7 +335,7 @@ void Client::handlePrivMsg(int argc, char** argv)
 			// Broadcast the message to all channel members. can make this a  method
 			for (Client* member: channel->members) {
 				if (member != this) {
-					member->send(":", nick, "!", user, "@localhost PRIVMSG ", target, " :");
+					member->send(":", fullname, " PRIVMSG ", target, " :");
 					for (int i = 1; i < argc; i++)
 						member->send(i == 1 ? "" : " ", argv[i]);
 					member->sendLine();
@@ -360,7 +352,7 @@ void Client::handlePrivMsg(int argc, char** argv)
 			}
 
 			// Send all parts of the message.
-			client->send(":", nick, "!", user, "@localhost PRIVMSG ", target, " :");
+			client->send(":", fullname, " PRIVMSG ", target, " :");
 			for (int i = 1; i < argc; i++)
 				client->send(i == 1 ? "" : " ", argv[i]);
 			client->sendLine();
@@ -685,7 +677,7 @@ void Client::handleKick(int argc, char** argv)
 
     // broadcast kick message
     for (Client* member: channel->members) {
-		member->send(":", nick, "!", user, "@", host, " ");
+		member->send(":", fullname, " ");
         member->send("KICK ", channelName, " ", targetToKick);
 		member->sendLine(" :", reason);
 	}

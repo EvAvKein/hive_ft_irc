@@ -15,6 +15,7 @@ public:
 	std::string user;				// The client's user name
 	std::string realname;			// The client's real name
 	std::string host;				// The client's host IP address
+	std::string fullname;			// The full nick!user@host name
 
 	std::string input;				// Buffered data from recv()
 	std::string output;				// Buffered data for send()
