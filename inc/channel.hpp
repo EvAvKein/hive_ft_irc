@@ -48,5 +48,4 @@ public:
 
 private:
 	std::set<std::string> invited;	// All nicknames invited to this channel
-
 };

@@ -57,7 +57,7 @@ void Client::handleJoin(int argc, char** argv)
 
 		// Issue an error if the channel is invite-only, and the client hasn't
 		// been invited.
-		if (channel->inviteOnly) { // FIXME: Check for invite
+		if (channel->inviteOnly && !channel->isInvited(nick)) {
 			sendLine("473 ", nick, " ", name, " :Cannot join channel (+i)");
 			continue;
 		}
