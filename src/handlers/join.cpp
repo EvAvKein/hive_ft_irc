@@ -64,6 +64,7 @@ void Client::handleJoin(int argc, char** argv)
 
 		// Join the channel.
 		channel->addMember(*this);
+		channels.insert(channel);
 
 		// Send a JOIN message to the joining client.
 		sendLine(":", fullname, " JOIN ", name);
