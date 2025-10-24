@@ -32,9 +32,11 @@ Server::~Server()
 
 void Server::eventLoop(const char* host, const char* port)
 {
-	 // Ignore SIGINT.
+	// Install a signal handler for SIGINT, so that the server can be shut down
+	// gracefully with Ctrl + C.
+	static volatile sig_atomic_t caughtSignal;
 	struct sigaction sa = {};
-	sa.sa_handler = [] (int) {}; // Do-nothing function.
+	sa.sa_handler = [] (int signal) { caughtSignal = signal; };
 	sigaction(SIGINT, &sa, nullptr);
 
 	// Create epoll.
@@ -63,7 +65,7 @@ void Server::eventLoop(const char* host, const char* port)
 		// Poll available events.
 		int numberOfReadyEvents = epoll_wait(epollFd, events, MAX_EVENTS, -1);
 		if (numberOfReadyEvents == -1) {
-			if (errno == EINTR) {
+			if (errno == EINTR && caughtSignal == SIGINT) {
 				fprintf(stderr, "\r"); // Just to avoid printing ^C.
 				log::info("Interrupted by user");
 				break;
