@@ -146,7 +146,7 @@ void Server::receiveFromClient(Client& client)
 
 		// Handle client disconnection.
 		} else if (bytes == 0) {
-			client.isDisconnected = true;
+			disconnectClient(client);
 
 		// Buffer received data.
 		} else {
@@ -268,17 +268,6 @@ bool Server::correctPassword(std::string_view pass)
 }
 
 /**
- * For any two clients, check if those clients share at least one channel.
- */
-bool Server::clientsOnSameChannel(const Client& a, const Client& b)
-{
-	for (Channel* channel: a.channels)
-		if (b.channels.find(channel) != b.channels.end())
-			return true;
-	return false;
-}
-
-/**
  * Disconnect a client from the server. Removes the client from all channels
  * they're part of, and also sends a QUIT message to notify others that the
  * client disappeared.
@@ -290,19 +279,17 @@ void Server::disconnectClient(Client& client, std::string_view reason)
 	client.sendLine("ERROR :", reason);
 
 	// Send QUIT messages to let other clients know the client disconnected.
-	// The <source> of the message is the disconnected client.
-	for (auto& [_, other]: clients)
-		if (clientsOnSameChannel(client, other))
-			other.sendLine(":", client.nick, " QUIT :", reason);
-
-	// Remove the client from all its channels.
-	for (Channel* channel: client.channels)
+	// The <source> of the message is the disconnected client. Also remove the
+	// client from all channels it's a part of.
+	for (Channel* channel: client.channels) {
+		for (Client* member: channel->members)
+			member->sendLine(":", client.fullname, " QUIT :", reason);
 		channel->removeMember(client);
+	}
 	client.channels.clear();
 
 	// Unsubscribe from epoll events for the client connection.
-	int socket = client.socket;
-	epoll_ctl(epollFd, EPOLL_CTL_DEL, socket, nullptr);
+	epoll_ctl(epollFd, EPOLL_CTL_DEL, client.socket, nullptr);
 
 	// Mark the client as disconnected. The connection is actually closed before
 	// the next iteration of the event loop.

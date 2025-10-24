@@ -86,6 +86,12 @@ void Client::handleNick(int argc, char** argv)
 			for	(Client* member: channel->members)
 				if (member != this)
 					member->sendLine(":", nick, " NICK ", newNick);
+
+	if (nick.empty())
+		log::info(host, " set their nick to ", newNick);
+	else
+		log::info(nick, " changed nick to ", newNick);
+
 	nick = newNick;
 	fullname = nick + "!" + user + "@" + host;
 
