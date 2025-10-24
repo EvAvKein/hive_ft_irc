@@ -167,3 +167,12 @@ bool Channel::isFull() const
 {
 	return memberLimit != 0 && static_cast<int>(members.size()) >= memberLimit;
 }
+
+/**
+ * Check if the channel is empty, meaning there are no clients joined to the
+ * channel.
+ */
+bool Channel::isEmpty() const
+{
+	return members.empty();
+}

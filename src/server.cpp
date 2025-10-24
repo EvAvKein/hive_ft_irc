@@ -127,6 +127,17 @@ void Server::eventLoop(const char* host, const char* port)
 				++i;
 			}
 		}
+
+		// Clean up channels that were left empty at the end of the last
+		// iteration of the event loop.
+		for (auto i = channels.begin(); i != channels.end();) {
+			if (i->second.isEmpty()) {
+				log::info("Removed empty channel ", i->second.name);
+				i = channels.erase(i);
+			} else {
+				++i;
+			}
+		}
 	}
 }
 
