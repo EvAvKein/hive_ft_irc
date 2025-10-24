@@ -258,6 +258,7 @@ void Server::handleMessage(Client& client, int argc, char** argv)
 		{"TOPIC",  &Client::handleTopic},
 		{"INVITE", &Client::handleInvite},
 		{"NAMES", &Client::handleNames},
+		{"LIST", &Client::handleList},
 	};
 
 	// Send the message to the handler for that command.

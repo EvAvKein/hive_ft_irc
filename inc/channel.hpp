@@ -38,6 +38,7 @@ public:
 	void removeMemberLimit();
 	bool isFull() const;
 	bool isEmpty() const;
+	int getMemberCount() const;
 
 	bool isInvited(std::string_view invited);
 	void addInvited(std::string_view invited);

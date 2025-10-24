@@ -176,3 +176,8 @@ bool Channel::isEmpty() const
 {
 	return members.empty();
 }
+
+int Channel::getMemberCount() const
+{
+	return static_cast<int>(members.size());
+}
