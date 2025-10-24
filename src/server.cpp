@@ -252,11 +252,12 @@ void Server::handleMessage(Client& client, int argc, char** argv)
 		{"PING", &Client::handlePing},
 		{"QUIT", &Client::handleQuit},
 		{"MODE", &Client::handleMode},
-		{"WHO",  &Client::handleWho},
+		{"WHO", &Client::handleWho},
 		{"KICK", &Client::handleKick},
-		{"PRIVMSG",  &Client::handlePrivMsg},
+		{"PRIVMSG", &Client::handlePrivMsg},
 		{"TOPIC",  &Client::handleTopic},
-		{"INVITE",  &Client::handleInvite}
+		{"INVITE", &Client::handleInvite},
+		{"NAMES", &Client::handleNames},
 	};
 
 	// Send the message to the handler for that command.
