@@ -271,6 +271,8 @@ void Server::handleMessage(Client& client, int argc, char** argv)
 	}
 
 	// Log any unimplemented commands, so that they can be added eventually.
+	// For any other command, send an unknown command error.
+	client.sendLine("421 ", client.fullname, " ", argv[0], " :Unknown command");
 	log::warn("Unimplemented command: ", argv[0]);
 }
 
