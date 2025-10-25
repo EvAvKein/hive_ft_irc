@@ -44,6 +44,7 @@ void Client::handlePart(int argc, char** argv)
 
 		// Leave the channel and send a PART message to the client.
 		channel->removeMember(*this);
+		channels.erase(channel);
 		sendLine(":", fullname, " PART ", channel->name);
 
 		// Send PART messages to all members of the channel, with the departed

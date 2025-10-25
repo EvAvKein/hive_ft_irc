@@ -37,6 +37,8 @@ public:
 	void setMemberLimit(int limit);
 	void removeMemberLimit();
 	bool isFull() const;
+	bool isEmpty() const;
+	int getMemberCount() const;
 
 	bool isInvited(std::string_view invited);
 	void addInvited(std::string_view invited);
@@ -48,5 +50,4 @@ public:
 
 private:
 	std::set<std::string> invited;	// All nicknames invited to this channel
-
 };

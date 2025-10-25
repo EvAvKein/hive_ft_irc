@@ -15,11 +15,6 @@ void Client::setChannelMode(Channel& channel, char* mode, char* args)
 	std::string argsOut;
 	char lastSign = 0;
 
-	// Special case to keep irssi happy: Handle 'b' by sending an empty ban list
-	// for the channel.
-	if (std::strcmp(mode, "b") == 0)
-		return sendLine("368 ", nick, " ", channel.name, " :End of channel ban list");
-
 	// Parse the mode string.
 	char sign = 0;
 	while (*mode != '\0') {
@@ -119,10 +114,10 @@ void Client::setChannelMode(Channel& channel, char* mode, char* args)
 		}
 	}
 
-	// Broadcast a message to all channel members containing only the modes that
-	// were actually applied.
+	// Broadcast a message to all other channel members containing only the
+	// modes that were actually applied.
 	for (Client* member: channel.members)
-		member->sendLine("MODE ", channel.name, " ", modeOut, argsOut);
+		member->sendLine(":", fullname, " MODE ", channel.name, " ", modeOut, argsOut);
 }
 
 /**
@@ -146,6 +141,11 @@ void Client::handleMode(int argc, char** argv)
 		// If no mode string was given, reply with the channel's current modes.
 		if (argc < 2)
 			return sendLine("324 ", nick, " ", target, " :", channel->getModes());
+
+		// Special case to keep irssi happy: Handle 'b' by sending an empty ban
+		// list for the channel.
+		if (std::strcmp(argv[1], "b") == 0)
+			return sendLine("368 ", nick, " ", target, " :End of channel ban list");
 
 		// Check that the client has channel operator privileges.
 		if (!channel->isOperator(*this))
@@ -180,7 +180,7 @@ void Client::handleMode(int argc, char** argv)
 			if (!std::isalpha(*mode))
 				return sendLine("472 ", nick, " ", *mode, " :is unknown mode char to me");
 			for (; std::isalpha(*mode); mode++) {
-				if (*mode++ != 'i')
+				if (*mode != 'i')
 					sendLine("502 ", nick, " :Unknown MODE flag");
 			}
 		}

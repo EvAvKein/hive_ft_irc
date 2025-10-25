@@ -1,5 +1,6 @@
 #pragma once
 
+#include <climits>
 #include <set>
 #include <string>
 #include <string_view>
@@ -41,6 +42,8 @@ public:
 	void handleKick(int argc, char** argv);
 	void handleTopic(int argc, char** argv);
 	void handleInvite(int argc, char** argv);
+	void handleNames(int argc, char** argv);
+	void handleList(int argc, char** argv);
 
 	// Send a string to the client.
 	void send(const std::string_view& string);
@@ -74,6 +77,7 @@ public:
 	void send(const char* string = "") { send(std::string_view(string)); }
 	void send(const std::string& string) { send(std::string_view(string)); }
 
-
+	static bool isValidName(std::string_view name);
 	void handleRegistrationComplete();
+	bool commonChecks(const char* cmd, bool reg, int argc, int min, int max = INT_MAX);
 };
