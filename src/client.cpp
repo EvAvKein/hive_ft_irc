@@ -30,6 +30,7 @@ void Client::send(const std::string_view& string)
 	}
 }
 
+//FIXME: There should be more error code added at the end of this rgistration.  check horse doc
 void Client::handleRegistrationComplete()
 {
 	if (nick.empty() || user.empty() || !isPassValid)

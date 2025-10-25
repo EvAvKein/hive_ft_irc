@@ -44,8 +44,8 @@ void Client::handleNick(int argc, char** argv)
 	if (!isValidName(newNick)) {
 		sendLine("432 ", nick, " ", newNick, " :Erroneus nickname");
 		return log::warn(user, "NICK: Invalid format of nickname");
-
 	}
+	
 	// Send a notification of the name change to the client, and to other
 	// channel members.
 	if (isRegistered) {
