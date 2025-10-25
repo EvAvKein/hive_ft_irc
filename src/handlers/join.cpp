@@ -7,7 +7,6 @@
 
 /**
  * Handle a JOIN message.
- * FIXME Join 0 part all the channels (horse doc)
  */
 void Client::handleJoin(int argc, char** argv)
 {

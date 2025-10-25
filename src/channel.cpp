@@ -181,3 +181,4 @@ int Channel::getMemberCount() const
 {
 	return static_cast<int>(members.size());
 }
+ 
