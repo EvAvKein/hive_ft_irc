@@ -40,8 +40,9 @@ public:
 	bool isEmpty() const;
 	int getMemberCount() const;
 
-	bool isInvited(std::string_view invited);
-	void addInvited(std::string_view invited);
+	bool isInvited(Client& invited) const;
+	void addInvited(Client& invited);
+	void removeInvited(Client& invited);
 	void resetInvited();
 
 	std::string getModes() const;
@@ -49,5 +50,5 @@ public:
 	Client* findClientByName(std::string_view name);
 
 private:
-	std::set<std::string> invited;	// All nicknames invited to this channel
+	std::set<Client*> invited;	// All nicknames invited to this channel
 };

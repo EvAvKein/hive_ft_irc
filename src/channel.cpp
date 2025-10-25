@@ -24,13 +24,14 @@ void Channel::addMember(Client& client)
 }
 
 /**
- * Remove a client from a channel. If the client is also a channel operator,
- * it's also removed from the channel operator list.
+ * Remove a client from a channel. The client is also removed from the operator
+ * and invite lists, if applicable.
  */
 void Channel::removeMember(Client& client)
 {
 	members.erase(&client);
 	operators.erase(&client);
+	invited.erase(&client);
 }
 
 /**
@@ -144,16 +145,33 @@ void Channel::removeMemberLimit()
 	memberLimit = 0;
 }
 
-bool Channel::isInvited(std::string_view invited)
+/**
+ * Check if a client is on the invite list.
+ */
+bool Channel::isInvited(Client& client) const
 {
-	return (this->invited.contains(std::string(invited)));
+	return invited.contains(&client);
 }
 
-void Channel::addInvited(std::string_view invited)
+/**
+ * Add a client to the invite list.
+ */
+void Channel::addInvited(Client& client)
 {
-	this->invited.insert(std::string(invited));
+	invited.insert(&client);
 }
 
+/**
+ * Remove a client from the invite list.
+ */
+void Channel::removeInvited(Client& client)
+{
+	invited.erase(&client);
+}
+
+/**
+ * Reset the invite list.
+ */
 void Channel::resetInvited()
 {
 	invited.clear();

@@ -31,7 +31,7 @@ void Client::handleInvite(int argc, char** argv)
 		return log::warn(nick, "INVITE: You're not on that channel");
 	}
 
-	if (channel->findClientByName(invitedName)) {
+	if (channel->isMember(*invitedClient)) {
 		sendLine("443 ", nick, " ", invitedName, " ", channel->name, " :is already on channel");
 		return log::warn(nick, "INVITE: You're already on this channel");
 	}
@@ -41,7 +41,7 @@ void Client::handleInvite(int argc, char** argv)
         return log::warn("INVITE: ", nick, " tried to invite but is not a operator of ", channel->name);
 	}
 
-	channel->addInvited(invitedName);
+	channel->addInvited(*invitedClient);
 	sendLine("341 ", channel->name, " ");
 	invitedClient->sendLine("INVITE ", invitedName, " ", channel->name);
 	log::info(nick, " invited ", invitedName, " to the channel ", channel->name);
