@@ -1,9 +1,10 @@
+#include <cstring>
+
 #include "client.hpp"
 #include "channel.hpp"
 #include "utility.hpp"
 #include "server.hpp"
 #include "irc.hpp"
-#include <cstring>
 
 /**
  * Handle a JOIN message.
@@ -15,11 +16,28 @@ void Client::handleJoin(int argc, char** argv)
 		sendLine("461 ", nick, " JOIN :Not enough parameters");
 		return log::warn(nick, " JOIN: Need more params or too many params: <channel> <key>");
 	}
+
 	// Check that the client is registered.
 	if (!isRegistered) {
 		sendLine("451 ", nick, " :You have not registered");
 		return log::warn(nick, " JOIN: User is not registered yet");
 	}
+
+	// If there's a single parameter "0" (without a '#' prefix), then PART all
+	// channels instead.
+	if (argc == 1 && std::strcmp(argv[0], "0") == 0) {
+
+		// Remove the client from all channels, also notifying all channel
+		// members (including the departing client).
+		for (Channel* channel: channels) {
+			for (Client* member: channel->members)
+				member->sendLine(":", fullname, " PART ", channel->name, " :");
+			channel->removeMember(*this);
+			log::info(nick, " left channel ", channel->name);
+		}
+		return channels.clear();
+	}
+
 	// Join a list of channels.
 	char noKeys[] = ""; // Empty list used if no keys were given.
 	char* names = argv[0]; // List of channel names ("#abc,#def")
@@ -62,7 +80,7 @@ void Client::handleJoin(int argc, char** argv)
 
 		// Issue an error if the channel is invite-only, and the client hasn't
 		// been invited.
-		if (channel->inviteOnly && !channel->isInvited(nick)) {
+		if (channel->inviteOnly && !channel->isInvited(*this)) {
 			sendLine("473 ", nick, " ", name, " :Cannot join channel (+i)");
 			log::warn(nick, " JOIN: Cannot join channel, channel is invite-only");
 			continue;

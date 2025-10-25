@@ -259,6 +259,8 @@ void Server::handleMessage(Client& client, int argc, char** argv)
 		{"INVITE", &Client::handleInvite},
 		{"NAMES", &Client::handleNames},
 		{"LIST", &Client::handleList},
+		{"LUSERS", &Client::handleLusers},
+		{"MOTD", &Client::handleMotd},
 	};
 
 	// Send the message to the handler for that command.
@@ -269,6 +271,8 @@ void Server::handleMessage(Client& client, int argc, char** argv)
 	}
 
 	// Log any unimplemented commands, so that they can be added eventually.
+	// For any other command, send an unknown command error.
+	client.sendLine("421 ", client.fullname, " ", argv[0], " :Unknown command");
 	log::warn("Unimplemented command: ", argv[0]);
 }
 
@@ -359,4 +363,20 @@ std::string Server::getTimeString()
 	timeString.erase(timeString.length() - 1, 1); // Removes newline
 
 	return timeString;
+}
+
+/**
+ * Get the total number of connected clients.
+ */
+size_t Server::getClientCount() const
+{
+	return clients.size();
+}
+
+/**
+ * Get the total number of active channels.
+ */
+size_t Server::getChannelCount() const
+{
+	return channels.size();
 }

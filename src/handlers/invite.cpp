@@ -5,44 +5,53 @@
 #include "irc.hpp"
 #include <cstring>
 
+/**
+ * Handle an INVITE message.
+ */
 void Client::handleInvite(int argc, char** argv)
 {
 	if (argc != 2) {
-		sendLine("461 ", nick, " INVITE :Not enough parameters");
-		return log::warn(nick, "INVITE: Has to be 2 params: <nickname> <channel>");
+		log::warn(nick, "INVITE: Has to be 2 params: <nickname> <channel>");
+		return sendLine("461 ", fullname, " INVITE :Not enough parameters");
 	}
+
+	// Check that the invited client exists.
 	const std::string_view invitedName = argv[0];
-
 	Client* invitedClient = server->findClientByName(invitedName);
-
-	if (!invitedClient) {
-		sendLine("406 ", invitedName, " :There was no such nickname");
-		return log::warn(nick, "INVITE: There was no such nickname");
-	}
-	Channel* channel = server->findChannelByName(argv[1]);
-
-	if (!channel) {
-		sendLine("403 ", invitedName, " :No such channel");
-		return log::warn(nick, "INVITE: There was no such channel");
+	if (invitedClient == nullptr) {
+		log::warn("INVITE: No such nickname: ", invitedName);
+		return sendLine("406 ", fullname, invitedName, " :There was no such nickname");
 	}
 
-	if (!channel->findClientByName(nick)) {
-		sendLine("442 ", nick, " ", channel->name, " :You're not on that channel");
-		return log::warn(nick, "INVITE: You're not on that channel");
+	// Check that the target channel exists.
+	const std::string_view channelName = argv[1];
+	Channel* channel = server->findChannelByName(channelName);
+	if (channel == nullptr) {
+		log::warn("INVITE: No such channel: ", channelName);
+		return sendLine("403 ", fullname, invitedName, " :No such channel");
 	}
 
-	if (channel->findClientByName(invitedName)) {
-		sendLine("443 ", nick, " ", invitedName, " ", channel->name, " :is already on channel");
-		return log::warn(nick, "INVITE: You're already on this channel");
+	// Check that the sender is actually a member of the channel.
+	if (!channel->isMember(*this)) {
+		log::warn("INVITE: ", nick, " is not on ", channelName);
+		return sendLine("442 ", fullname, " ", channelName, " :You're not on that channel");
 	}
 
+	// Check that the invited client isn't a member of the channel.
+	if (channel->isMember(*invitedClient)) {
+		log::warn("INVITE: ", nick, " is already on ", channelName);
+		return sendLine("443 ", fullname, " ", invitedName, " ", channelName, " :is already on channel");
+	}
+
+	// Check that the sender is an operator on the channel.
 	if (!channel->isOperator(*this)) {
-		sendLine("482 ", nick, " ", channel->name, " :You're not channel operator");
-        return log::warn("INVITE: ", nick, " tried to invite but is not a operator of ", channel->name);
+        log::warn("INVITE: ", nick, " tried to invite but is not a operator of ", channelName);
+		return sendLine("482 ", fullname, " ", channelName, " :You're not channel operator");
 	}
 
-	channel->addInvited(invitedName);
-	sendLine("341 ", channel->name, " ");
-	invitedClient->sendLine("INVITE ", invitedName, " ", channel->name);
-	log::info(nick, " invited ", invitedName, " to the channel ", channel->name);
+	// Add the invited client to the invite list and notify them.
+	channel->addInvited(*invitedClient);
+	sendLine("341 ", fullname, " ", invitedName, " ", channelName);
+	invitedClient->sendLine(":", fullname, " INVITE ", invitedName, " ", channelName);
+	log::info(nick, " invited ", invitedName, " to the channel ", channelName);
 }

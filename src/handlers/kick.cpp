@@ -5,8 +5,9 @@
 #include "irc.hpp"
 #include <cstring>
 
-//:PUPU!p@localhost KICK #channel eve :being too rigorous
-//:<kicker>!<user>@localhost KICK <channel> <targetToKick> :<reason>
+/**
+ * Handle a KICK message.
+ */
 void Client::handleKick(int argc, char** argv)
 {
     // Must have at least <channel> and <user>
@@ -39,34 +40,40 @@ void Client::handleKick(int argc, char** argv)
         return;
     }
 
-    // check sender is in channel
-    if (!channel->findClientByName(nick)) {
-        sendLine("442 ", nick, " ", channelName, " :You're not on that channel");
-        log::warn("KICK: ", nick, " tried to kick but is not a member of ", channelName);
-        return;
-    }
+	// Check that the sender is in the channel.
+	if (!channel->isMember(*this)) {
+		log::warn("KICK: ", nick, " tried to kick but is not a member of ", channelName);
+		return sendLine("442 ", nick, " ", channelName, " :You're not on that channel");
+	}
 
 	// Check that the sender has operator privileges on the channel.
-	if (!channel->isOperator(*this))  {
-		sendLine("482 ", nick, " ", channelName, " :You're not channel operator");
-        return log::warn("KICK: ", nick, " tried to kick but is not a operator of ", channelName);
-	}
-	//if no target found in the channel
-    Client* clientToKick = channel->findClientByName(targetToKick);
-    if (clientToKick == nullptr) {
-        sendLine("441 ", nick, " ", targetToKick, " ", channelName, " :They aren't on that channel");
-        log::warn("KICK: ", nick, " tried to kick ", targetToKick, " but they are not in ", channelName);
-        return;
-    }
+	if (!channel->isOperator(*this))
+		return sendLine("482 ", nick, " ", channelName, " :You're not channel operator");
 
-    // broadcast kick message
-    for (Client* member: channel->members) {
-		member->send(":", fullname, " ");
-        member->send("KICK ", channelName, " ", targetToKick);
-		member->sendLine(" :", reason);
-	}
+	// Use an empty <reason> if none was given.
+	const char* reason = argc == 3 ? argv[2] : "";
 
-    // remove kicked dude
-    channel->removeMember(*clientToKick);
-    log::info("KICK: ", nick, " kicked ", targetToKick, " from ", channelName);
+	// Process the list of target clients to kick.
+	char* targetList = argv[1];
+	while (*targetList != '\0') {
+
+		// Find the target channel member.
+		char* targetName = nextListItem(targetList);
+		Client* target = channel->findClientByName(targetName);
+		if (target == nullptr) {
+			log::warn("KICK: ", nick, " tried to kick ", targetName, " but they are not in ", channelName);
+			return sendLine("441 ", nick, " ", targetName, " ", channelName, " :They aren't on that channel");
+		}
+
+		// Broadcast kick message.
+		for (Client* member: channel->members) {
+			member->send(":", fullname, " ");
+			member->send("KICK ", channelName, " ", targetName);
+			member->sendLine(" :", reason);
+		}
+
+		// Remove kicked dude.
+		channel->removeMember(*target);
+		log::info("KICK: ", nick, " kicked ", targetName, " from ", channelName);
+	}
 }
