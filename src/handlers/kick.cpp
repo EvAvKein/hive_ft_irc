@@ -19,19 +19,6 @@ void Client::handleKick(int argc, char** argv)
     std::string channelName = argv[0];
     std::string targetToKick = argv[1];
 
-    // build reason string coz it can be many args
-    std::string reason;
-    if (argc >= 3) {
-		for (int i = 2; i < argc; ++i) {
-			reason += (i > 2 ? " " : ""); // add a space before everything except the first word
-			reason += argv[i];
-		}
-        if (!reason.empty() && reason[0] == ':')
-            reason.erase(0, 1);
-    } else {
-        reason = "No reason. I just kicked you for fun";
-    }
-
     // find channel
     Channel* channel = server->findChannelByName(channelName);
     if (!channel) {
