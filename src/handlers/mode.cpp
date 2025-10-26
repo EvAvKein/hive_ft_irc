@@ -1,9 +1,10 @@
+#include <cstring>
+
 #include "client.hpp"
 #include "channel.hpp"
 #include "utility.hpp"
 #include "server.hpp"
 #include "irc.hpp"
-#include <cstring>
 
 /**
  * Have the client change the modes for a channel.
@@ -68,15 +69,15 @@ void Client::setChannelMode(Channel& channel, char* mode, char* args)
 						if (!parseInt(nextListItem(args), limit) || limit <= 0) {
 							sendNumeric("696", channel.getName(), " l ", limit, " :Bad limit");
 							continue;
-						} else if (limit == channel.memberLimit) {
+						} else if (limit == channel.getMemberLimit()) {
 							continue;
 						}
 						channel.setMemberLimit(limit);
 						argsOut += " " + std::to_string(limit);
 					} else {
-						if (channel.memberLimit == 0)
+						if (channel.getMemberLimit() == INT_MAX)
 							continue;
-						channel.removeMemberLimit();
+						channel.setMemberLimit(INT_MAX);
 					}
 				} break;
 

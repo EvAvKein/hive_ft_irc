@@ -153,20 +153,20 @@ void Channel::removeKey()
 }
 
 /**
+ * Get the channel member limit.
+ */
+int Channel::getMemberLimit() const
+{
+	return memberLimit;
+}
+
+/**
  * Set the channel member limit. The limit must be higher than zero.
  */
 void Channel::setMemberLimit(int limit)
 {
 	assert(limit > 0);
 	memberLimit = limit;
-}
-
-/**
- * Remove the channel member limit.
- */
-void Channel::removeMemberLimit()
-{
-	memberLimit = 0;
 }
 
 /**
@@ -223,7 +223,7 @@ void Channel::resetInvited()
  */
 bool Channel::isFull() const
 {
-	return memberLimit != 0 && static_cast<int>(members.size()) >= memberLimit;
+	return static_cast<int>(members.size()) >= memberLimit;
 }
 
 /**

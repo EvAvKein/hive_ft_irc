@@ -1,5 +1,6 @@
 #pragma once
 
+#include <climits>
 #include <set>
 #include <string>
 #include <string_view>
@@ -16,7 +17,6 @@ public:
 	std::set<Client*> members;		// All clients joined to this channel
 	std::set<Client*> operators;	// All clients with operator privileges
 	std::string topicChangeStr;		// The nick of the person who last changed topic plus a timestamp
-	int memberLimit = 0;			// Limit for the +l mode (0 = no limit)
 
 	bool isMember(Client& client) const;
 	void addMember(Client& client);
@@ -31,8 +31,8 @@ public:
 	bool setKey(std::string_view newKey);
 	void removeKey();
 
+	int getMemberLimit() const;
 	void setMemberLimit(int limit);
-	void removeMemberLimit();
 	bool isFull() const;
 	bool isEmpty() const;
 	int getMemberCount() const;
@@ -65,4 +65,5 @@ private:
 	std::set<Client*> invited;		// All nicknames invited to this channel
 	bool inviteOnly = false;		// Whether the +i mode is set
 	bool topicRestricted = false;	// Whether the +t mode is set
+	int memberLimit = INT_MAX;		// Limit for the +l mode
 };
