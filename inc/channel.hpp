@@ -16,7 +16,6 @@ public:
 
 	std::set<Client*> members;		// All clients joined to this channel
 	std::set<Client*> operators;	// All clients with operator privileges
-	std::string topicChangeStr;		// The nick of the person who last changed topic plus a timestamp
 
 	bool isMember(Client& client) const;
 	void addMember(Client& client);
@@ -53,6 +52,7 @@ public:
 
 	bool hasTopic() const;
 	std::string_view getTopic() const;
+	std::string_view getTopicChange() const;
 	void setTopic(std::string_view newTopic, Client& client);
 
 	bool isTopicRestricted() const;
@@ -61,6 +61,7 @@ public:
 private:
 	std::string name;				// The name of the channel
 	std::string topic;				// The current topic
+	std::string topicChangeStr;		// The nick of the person who last changed topic plus a timestamp
 	std::string key;				// Key for the +k mode (empty = no key)
 	std::set<Client*> invited;		// All nicknames invited to this channel
 	bool inviteOnly = false;		// Whether the +i mode is set

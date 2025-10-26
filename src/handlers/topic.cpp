@@ -39,7 +39,7 @@ void Client::handleTopic(int argc, char** argv)
 
 		// Reply with the current topic.
 		sendNumeric("332", channel->getName(), " :", channel->getTopic());
-		sendNumeric("333", channel->getName(), " :", channel->topicChangeStr);
+		sendNumeric("333", channel->getName(), " :", channel->getTopicChange());
 		return log::info("Sent topic: ", channel->getTopic());
 	}
 

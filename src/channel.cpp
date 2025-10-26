@@ -268,6 +268,14 @@ std::string_view Channel::getTopic() const
 }
 
 /**
+ * Get the nick and timestamp of the last topic change.
+ */
+std::string_view Channel::getTopicChange() const
+{
+	return topicChangeStr;
+}
+
+/**
  * Set the current topic. Also updates the topic change nickname and timestamp.
  */
 void Channel::setTopic(std::string_view newTopic, Client& client)
