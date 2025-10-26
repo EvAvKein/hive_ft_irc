@@ -10,13 +10,13 @@ void Client::handlePing(int argc, char** argv)
 	// Check that enough parameters were provided.
 	if (argc != 1) {
 		log::warn(nick, "PING: Has to be 1 param: <server>");
-		return sendLine("461 ", fullname, " PING :Not enough parameters");
+		return sendNumeric("461", "PING :Not enough parameters");
 	}
 
 	// Check that the token isn't empty.
 	char* token = argv[0];
 	if (*token == '\0')
-		return sendLine("409 ", fullname, " :No origin specified");
+		return sendNumeric("409", ":No origin specified");
 
 	// Send the token back to the client in a PONG message.
 	sendLine(":", server->getHostname(), " PONG :", token);

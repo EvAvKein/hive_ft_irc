@@ -186,7 +186,8 @@ void Server::parseMessage(Client& client, std::string message)
 {
 	// Array for holding the individual parts of the message.
 	int argc = 0;
-	// log::info(">>> Message: '", message, "'");
+
+	// log::info(">>>>>>>>> RECV '", message, "'");
 	char* argv[MAX_MESSAGE_PARTS];
 
 	// Split the message into parts.
@@ -273,7 +274,7 @@ void Server::handleMessage(Client& client, int argc, char** argv)
 
 	// Log any unimplemented commands, so that they can be added eventually.
 	// For any other command, send an unknown command error.
-	client.sendLine("421 ", client.fullname, " ", argv[0], " :Unknown command");
+	client.sendNumeric("421", argv[0], " :Unknown command");
 	log::warn("Unimplemented command: ", argv[0]);
 }
 
