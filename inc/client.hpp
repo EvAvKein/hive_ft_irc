@@ -46,6 +46,7 @@ public:
 	void handleList(int argc, char** argv);
 	void handleLusers(int argc, char** argv);
 	void handleMotd(int argc, char** argv);
+	void handleNotice(int argc, char** argv);
 
 	// Send a numeric reply.
 	template <typename... Arguments>

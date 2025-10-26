@@ -263,6 +263,7 @@ void Server::handleMessage(Client& client, int argc, char** argv)
 		{"LIST", &Client::handleList},
 		{"LUSERS", &Client::handleLusers},
 		{"MOTD", &Client::handleMotd},
+		{"NOTICE", &Client::handleNotice},
 	};
 
 	// Send the message to the handler for that command.
