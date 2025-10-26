@@ -7,12 +7,8 @@
 void Client::handleLusers(int argc, char** argv)
 {
 	(void) argv;
-
-	// Check that no parameters were given.
-	if (argc != 0) {
-		log::warn(nick, " LUSERS: Has to be 0 params");
-		return sendNumeric("461", "LUSERS :Not enough parameters");
-	}
+	if (!checkParams("LUSERS", true, argc, 0, 0))
+		return;
 
 	// Send stats about the number of clients and channels. The server doesn's
 	// support invisible users or networks, so those values are hard-coded.

@@ -21,24 +21,17 @@ bool Client::isValidName(std::string_view name)
  */
 void Client::handleNick(int argc, char** argv)
 {
+	if (!checkParams("NICK", false, argc, 1, 1))
+		return;
+
 	// Must have passed the correct password first: https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.1
 	if (!isPassValid) {
 		log::warn(user, "Password is not yet set");
 		return sendNumeric("464", ":Password incorrect");
 	}
 
-	// Check the parameter count.
-	if (argc < 1) {
-		log::warn(user, " NICK: No nick name given yet");
-		return sendNumeric("431", ":No nickname given");
-	}
-	std::string_view newNick = argv[0];
-	if (argc > 2) {
-		log::warn(user, " NICK: Too many parameters given");
-		return sendNumeric("432", newNick, " :Erroneus nickname");
-	}
-
 	// Check that the new nick is valid and not in use.
+	std::string_view newNick = argv[0];
 	if (server->findClientByName(newNick)) {
 		log::warn(user, " NICK: Nickname is already in use: ", newNick);
 		return sendNumeric("433", newNick, " :Nickname is already in use");

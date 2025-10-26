@@ -11,10 +11,8 @@
 void Client::handleWho(int argc, char** argv)
 {
 	// Check that the correct number of parameters were given.
-	if (argc > 2) {
-		log::warn(nick, " WHO: Not enough parameters");
-		return sendNumeric("461", "WHO :Not enough parameters");
-	}
+	if (!checkParams("WHO", true, argc, 0, 1))
+		return;
 
 	// If the server doesn't support the WHO command with a <mask> parameter, it
 	// can send just an empty list.

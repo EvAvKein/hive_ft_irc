@@ -7,10 +7,14 @@
 
 /**
  * Handle a USER message.
-   USER <username> <0> <*> <realname>
+   USER <username> 0 * <realname>
  */
 void Client::handleUser(int argc, char** argv)
 {
+	// Check parameter count.
+	if (!checkParams("USER", false, argc, 4, 4))
+		return;
+
  	// Must have passed the correct password first: https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.1
 	if (!isPassValid) {
 		log::warn(user, " USER: Password is not yet set");
@@ -23,13 +27,9 @@ void Client::handleUser(int argc, char** argv)
 		return sendNumeric("462", ":You may not reregister");
 	}
 
-	if (argc < 4 || argv[0] == NULL || argv[3] == NULL) {
-		log::warn(user, " USER: Not enough parameters");
-		return sendNumeric("461", "USER :Not enough parameters");
-	}
-	bool userAlreadySubmitted = !user.empty() || !realname.empty();
 
 	// Save username and real name
+	bool userAlreadySubmitted = !user.empty() || !realname.empty();
 	user = argv[0];
 	realname = argv[3];
 	fullname = nick + "!" + user + "@" + host;

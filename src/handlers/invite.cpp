@@ -10,10 +10,8 @@
  */
 void Client::handleInvite(int argc, char** argv)
 {
-	if (argc != 2) {
-		log::warn(nick, " INVITE: Has to be 2 params: <nickname> <channel>");
-		return sendNumeric("461", "INVITE :Not enough parameters");
-	}
+	if (!checkParams("INVITE", true, argc, 2, 2))
+		return;
 
 	// Check that the invited client exists.
 	const std::string_view invitedName = argv[0];

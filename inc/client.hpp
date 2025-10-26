@@ -89,5 +89,5 @@ public:
 
 	static bool isValidName(std::string_view name);
 	void handleRegistrationComplete();
-	bool commonChecks(const char* cmd, bool reg, int argc, int min, int max = INT_MAX);
+	bool checkParams(const char* cmd, bool reg, int argc, int min, int max);
 };

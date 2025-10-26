@@ -10,11 +10,8 @@
  */
 void Client::handlePart(int argc, char** argv)
 {
-	// Check that one or two parameters were provided.
-	if (argc < 1 || argc > 2) {
-		log::warn(nick, " PART: Need more params or too many params: <channel>{,<channel>}");
-		return sendNumeric("461", "PART :Not enough parameters");
-	}
+	if (!checkParams("PART", true, argc, 1, 2))
+		return;
 
 	// Check that the client is registered.
 	if (!isRegistered) {

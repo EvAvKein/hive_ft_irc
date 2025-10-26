@@ -66,25 +66,26 @@ void Client::handleRegistrationComplete()
 /**
  * Perform common parameter checks for commands, sending any error messages if
  * there are problems. Returns false if any of the checks failed, indicating
- * that the calling command handler should return immediately. The maximum
- * parameter count can be left out, in which case there's no parameter limit.
+ * that the calling command handler should return immediately.
  *
  * @param cmd  The name of the command (e.g. "JOIN")
- * @param reg  Whether registration is reuired to use the command
+ * @param reg  Whether registration is required to use the command
  * @param argc The actual number of parameters
  * @param min  The minimum number of parameters
  * @param max  The maximum number of parameters
  */
-bool Client::commonChecks(const char* cmd, bool reg, int argc, int min, int max)
+bool Client::checkParams(const char* cmd, bool reg, int argc, int min, int max)
 {
 	// Check registration.
 	if (reg && !isRegistered) {
+		log::warn("In command ", cmd, ": Client is not registered");
 		sendNumeric("451", ":You have not registered");
 		return false;
 	}
 
 	// Check parameter count.
 	if (argc < min || argc > max) {
+		log::warn("In command ", cmd, ": Got ", argc, " parameters, expected ", min, "-", max);
 		sendNumeric("461", cmd, " :Not enough parameters");
 		return false;
 	}

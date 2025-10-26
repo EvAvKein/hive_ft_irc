@@ -11,11 +11,8 @@
  */
 void Client::handleJoin(int argc, char** argv)
 {
-	// Check that enough parameters were provided.
-	if (argc < 1 || argc > 2) {
-		log::warn(nick, " JOIN: Need more params or too many params: <channel> <key>");
-		return sendNumeric("461", "JOIN :Not enough parameters");
-	}
+	if (!checkParams("JOIN", true, argc, 1, 2))
+		return;
 
 	// Check that the client is registered.
 	if (!isRegistered) {

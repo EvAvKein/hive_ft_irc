@@ -21,11 +21,8 @@ static const char* message = R"(
  */
 void Client::handleMotd(int argc, char** argv)
 {
-	// Check parameters.
-	if (argc > 1) {
-		log::warn(nick, "MOTD: Has to be 0 or 1 params");
-		return sendNumeric("461", "MOTD :Not enough parameters");
-	}
+	if (!checkParams("MOTD", true, argc, 0, 1))
+		return;
 
 	// Server networks are not supported, so a <server> argument is always an
 	// error.

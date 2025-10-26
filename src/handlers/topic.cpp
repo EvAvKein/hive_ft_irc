@@ -11,10 +11,8 @@
 void Client::handleTopic(int argc, char** argv)
 {
 	// Check that the correct number of parameters were given.
-	if (argc < 1 || argc > 2) {
-		log::warn(nick, " TOPIC: Has to be 1-2 params: <channel> [<topic>]");
-		return sendNumeric("461", "TOPIC :Not enough parameters");
-	}
+	if (!checkParams("TOPIC", true, argc, 1, 2))
+		return;
 
 	// Check that the channel exists.
 	char* channelName = argv[0];

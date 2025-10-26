@@ -7,11 +7,9 @@
  */
 void Client::handlePing(int argc, char** argv)
 {
-	// Check that enough parameters were provided.
-	if (argc != 1) {
-		log::warn(nick, "PING: Has to be 1 param: <server>");
-		return sendNumeric("461", "PING :Not enough parameters");
-	}
+	// Check parameter count.
+	if (!checkParams("PING", false, argc, 1, 1))
+		return;
 
 	// Check that the token isn't empty.
 	char* token = argv[0];

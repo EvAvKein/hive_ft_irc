@@ -10,9 +10,8 @@
  */
 void Client::handleKick(int argc, char** argv)
 {
-	// Must have at least <channel> and <user>
-	if (argc < 2)
-		return sendNumeric("461", "KICK :Not enough parameters");
+	if (!checkParams("KICK", true, argc, 2, 3))
+		return;
 
 	// Find the target channel.
 	char* channelName = argv[0];

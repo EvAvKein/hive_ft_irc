@@ -7,23 +7,9 @@
 
 void Client::handlePrivMsg(int argc, char** argv)
 {
-	// Check that there is a recipient.
-	if (argc < 1) {
-		log::warn("PRIVMSG: ", "No recipient parameter. NICK: ", nick);
-		return sendNumeric("411", ":No recipient given");
-	}
-
-	// Check that there is a message.
-	if (argc < 2) {
-		log::warn("PRIVMSG: ", "No recipient parameter. NICK: ", nick);
-		return sendNumeric("412", ":No text to send");
-	}
-
-	// Check that the client is registered.
-	if (!isRegistered) {
-		log::warn(nick, " PRIVMSG: User is not registered yet");
-		return sendNumeric("451", ":You have not registered");
-	}
+	// Check the parameter count.
+	if (!checkParams("PRIVMSG", true, argc, 1, 2))
+		return;
 
 	// Iterate over the list of message targets.
 	char* targetList = argv[0];

@@ -8,9 +8,8 @@
  */
 void Client::handleNames(int argc, char** argv)
 {
-	// Check that enough parameters were given.
-	if (argc != 1)
-		return sendNumeric("461", "NAMES :Not enough parameters");
+	if (!checkParams("NAMES", true, argc, 1, 1))
+		return;
 
 	// Traverse the comma-separated list of channels.
 	char* channelList = argv[0];

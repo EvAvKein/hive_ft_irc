@@ -125,9 +125,8 @@ void Client::setChannelMode(Channel& channel, char* mode, char* args)
  */
 void Client::handleMode(int argc, char** argv)
 {
-	// Check that enough parameters were provided.
-	if (argc < 1 || argc > 3)
-		return sendNumeric("461", "MODE :Not enough parameters");
+	if (!checkParams("MODE", true, argc, 1, 3))
+		return;
 
 	// Check if the target is a channel.
 	char* target = argv[0];

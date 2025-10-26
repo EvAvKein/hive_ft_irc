@@ -8,9 +8,8 @@
  */
 void Client::handleList(int argc, char** argv)
 {
-	// Check that enough parameters were given.
-	if (argc > 1)
-		return sendNumeric("461", "LIST :Not enough parameters");
+	if (!checkParams("LIST", true, argc, 0, 1))
+		return;
 
 	// The list start reply is always sent.
 	sendNumeric("321", "Channel :Users  Name");
