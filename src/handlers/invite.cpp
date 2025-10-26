@@ -15,7 +15,7 @@ void Client::handleInvite(int argc, char** argv)
 
 	// Check that the invited client exists.
 	const std::string_view invitedName = argv[0];
-	Client* invitedClient = server->findClientByName(invitedName);
+	Client* invitedClient = server.findClientByName(invitedName);
 	if (invitedClient == nullptr) {
 		log::warn("INVITE: No such nickname: ", invitedName);
 		return sendNumeric("406", invitedName, " :There was no such nickname");
@@ -23,7 +23,7 @@ void Client::handleInvite(int argc, char** argv)
 
 	// Check that the target channel exists.
 	const std::string_view channelName = argv[1];
-	Channel* channel = server->findChannelByName(channelName);
+	Channel* channel = server.findChannelByName(channelName);
 	if (channel == nullptr) {
 		log::warn("INVITE: No such channel: ", channelName);
 		return sendNumeric("403", invitedName, " :No such channel");

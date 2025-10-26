@@ -21,7 +21,7 @@ void Client::handlePrivMsg(int argc, char** argv)
 		if (Channel::isValidName(target)) {
 
 			// Check that the channel exists.
-			Channel* channel = server->findChannelByName(target);
+			Channel* channel = server.findChannelByName(target);
 			if (channel == nullptr) {
 				log::warn("PRIVMSG: No such channel: ", target);
 				sendNumeric("404", target, " :Cannot send to channel");
@@ -44,7 +44,7 @@ void Client::handlePrivMsg(int argc, char** argv)
 		} else {
 
 			// Check that the recipient exists.
-			Client* client = server->findClientByName(target);
+			Client* client = server.findClientByName(target);
 			if (client == nullptr) {
 				log::warn("PRIVMSG: No such nick: ", target);
 				sendNumeric("401", target, " :No such nick/channel");

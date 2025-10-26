@@ -20,5 +20,5 @@ void Client::handleQuit(int argc, char** argv)
 
 	// Disconnect the client with the reason message.
 	log::info("QUIT: ", nick, " has quit");
-	server->disconnectClient(*this, reason);
+	server.disconnectClient(*this, reason);
 }

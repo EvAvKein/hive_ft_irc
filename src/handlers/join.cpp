@@ -53,9 +53,9 @@ void Client::handleJoin(int argc, char** argv)
 		}
 
 		// If there's no channel by that name, create it.
-		Channel* channel = server->findChannelByName(name);
+		Channel* channel = server.findChannelByName(name);
 		if (channel == nullptr)
-			channel = server->newChannel(name);
+			channel = server.newChannel(name);
 
 		// Skip if the client is already in the channel.
 		if (channel->findClientByName(nick) != nullptr)
@@ -99,7 +99,7 @@ void Client::handleJoin(int argc, char** argv)
 		}
 
 		// Send a list of members in the channel.
-		send(":", server->getHostname(), " 353 ", fullname, " = ", name, " :");
+		send(":", server.getHostname(), " 353 ", fullname, " = ", name, " :");
 		for (Client* member: channel->allMembers()) {
 			const char* prefix = channel->isOperator(*member) ? "@" : "";
 			send(prefix, member->nick, " ");

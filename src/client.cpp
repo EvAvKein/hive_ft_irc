@@ -14,7 +14,7 @@
  * Create a new Client.
  */
 Client::Client(Server& server, int socket, std::string_view host)
-	: server(&server),
+	: server(server),
 	  socket(socket),
 	  host(host)
 {
@@ -58,7 +58,7 @@ void Client::handleRegistrationComplete()
 	// Send welcome messages.
 	sendNumeric("001", ":Welcome to the ", SERVER_NAME, " Network ", fullname);
 	sendNumeric("002", ":Your host is ", SERVER_NAME, ", running version 1.0");
-	sendNumeric("003", ":This server was created ", server->getLaunchTime());
+	sendNumeric("003", ":This server was created ", server.getLaunchTime());
 	sendNumeric("004", ":" SERVER_NAME " Version 1.0");
 
 	// Send feature advertisement messages (at least one is mandatory).

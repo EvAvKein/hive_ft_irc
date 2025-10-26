@@ -26,7 +26,7 @@ void Client::handlePart(int argc, char** argv)
 
 		// Check that the channel exists.
 		char* channelName = nextListItem(channelNameList);
-		Channel* channel = server->findChannelByName(channelName);
+		Channel* channel = server.findChannelByName(channelName);
 		if (channel == nullptr) {
 			sendNumeric("403", channelName, " :No such channel");
 			log::warn(nick, " PART: Invalid channel name");

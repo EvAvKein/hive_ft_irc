@@ -16,7 +16,7 @@ void Client::handleTopic(int argc, char** argv)
 
 	// Check that the channel exists.
 	char* channelName = argv[0];
-	Channel* channel = server->findChannelByName(channelName);
+	Channel* channel = server.findChannelByName(channelName);
 	if (channel == nullptr) {
 		log::warn(nick, " TOPIC: There was no such channel");
 		return sendNumeric("403", channelName, " :No such channel");

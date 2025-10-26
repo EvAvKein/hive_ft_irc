@@ -17,11 +17,11 @@ void Client::handleNames(int argc, char** argv)
 
 		// Only list clients if the channel exists.
 		char* channelName = nextListItem(channelList);
-		Channel* channel = server->findChannelByName(channelName);
+		Channel* channel = server.findChannelByName(channelName);
 		if (channel != nullptr) {
 
 			// List the channel's members.
-			send(":", server->getHostname(), " 353 ", fullname, " = ", channelName, " :");
+			send(":", server.getHostname(), " 353 ", fullname, " = ", channelName, " :");
 			for (Client* member: channel->allMembers()) {
 				const char* prefix = channel->isOperator(*member) ? "@" : "";
 				send(prefix, member->nick, " ");

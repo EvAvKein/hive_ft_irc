@@ -84,7 +84,7 @@ void Client::setChannelMode(Channel& channel, char* mode, char* args)
 				// +o: Give or take operator privileges from a client.
 				case 'o': {
 					char* target = nextListItem(args);
-					Client* client = server->findClientByName(target);
+					Client* client = server.findClientByName(target);
 					if (client == nullptr) {
 						sendNumeric("401", target, " :No such nick/channel");
 						continue;
@@ -134,7 +134,7 @@ void Client::handleMode(int argc, char** argv)
 	if (Channel::isValidName(target)) {
 
 		// Check that the channel actually exists.
-		Channel* channel = server->findChannelByName(target);
+		Channel* channel = server.findChannelByName(target);
 		if (channel == nullptr)
 			return sendNumeric("403", target, " :No such channel");
 
@@ -160,7 +160,7 @@ void Client::handleMode(int argc, char** argv)
 	} else {
 
 		// Check that the client exists.
-		Client* client = server->findClientByName(target);
+		Client* client = server.findClientByName(target);
 		if (client == nullptr)
 			return sendNumeric("401", target, " :No such nick/channel");
 

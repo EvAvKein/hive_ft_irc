@@ -15,7 +15,7 @@ public:
 	Client(Server& server, int fd, std::string_view host);
 	~Client() = default;
 
-	Server* server = nullptr;		// Pointer to the server object
+	Server& server;					// Reference to the server object
 	int socket = -1;				// The socket used for the client's connection
 	std::string nick;				// The client's nickname
 	std::string user;				// The client's user name
@@ -56,7 +56,7 @@ public:
 	void sendNumeric(const char* num, const Arguments&... args)
 	{
 		const char* name = nick.empty() ? "*" : nick.c_str();
-		sendLine(":", server->getHostname(), " ", num, " ", name, " ", args...);
+		sendLine(":", server.getHostname(), " ", num, " ", name, " ", args...);
 	}
 
 	// Send a string to the client.

@@ -1,9 +1,9 @@
+#include <cstring>
+
 #include "client.hpp"
 #include "channel.hpp"
 #include "utility.hpp"
-#include "server.hpp"
 #include "irc.hpp"
-#include <cstring>
 
 /**
  * Handle a USER message.

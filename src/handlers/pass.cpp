@@ -20,11 +20,11 @@ void Client::handlePass(int argc, char** argv)
 	}
 
 	// Check that the password matches.
-	if (!server->correctPassword(argv[0])) {
+	if (!server.correctPassword(argv[0])) {
 		isPassValid = false;
 		sendNumeric("464", ":Password incorrect");
 		log::warn(nick, " PASS: Password is incorrect");
-		return server->disconnectClient(*this, "Incorrect password");
+		return server.disconnectClient(*this, "Incorrect password");
 	}
 
 	// Mark the client as authenticated, and complete registration, if

@@ -15,7 +15,7 @@ void Client::handleKick(int argc, char** argv)
 
 	// Find the target channel.
 	char* channelName = argv[0];
-	Channel* channel = server->findChannelByName(channelName);
+	Channel* channel = server.findChannelByName(channelName);
 	if (channel == nullptr) {
 		log::warn("KICK: No such channel: ", channelName);
 		return sendNumeric("403", channelName, " :No such channel");

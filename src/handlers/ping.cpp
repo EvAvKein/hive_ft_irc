@@ -17,5 +17,5 @@ void Client::handlePing(int argc, char** argv)
 		return sendNumeric("409", ":No origin specified");
 
 	// Send the token back to the client in a PONG message.
-	sendLine(":", server->getHostname(), " PONG :", token);
+	sendLine(":", server.getHostname(), " PONG :", token);
 }

@@ -19,7 +19,7 @@ void Client::handleWho(int argc, char** argv)
 	if (argc == 0) {
 
 		// Send information about each client connected to the server.
-		for (auto& [_, client]: server->allClients()) {
+		for (auto& [_, client]: server.allClients()) {
 
 			// Get the name of one channel that this client is on, or '*' if the
 			// client is not joined to any channels.
@@ -28,7 +28,7 @@ void Client::handleWho(int argc, char** argv)
 				channel = (*client.channels.begin())->getName();
 
 			// Send some information about the client.
-			send(":", server->getHostname(), " 351 ", nick, " ");
+			send(":", server.getHostname(), " 351 ", nick, " ");
 			send(channel, " ");
 			send(client.user, " ");
 			send(client.host, " ");

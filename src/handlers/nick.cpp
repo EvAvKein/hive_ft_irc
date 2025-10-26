@@ -32,7 +32,7 @@ void Client::handleNick(int argc, char** argv)
 
 	// Check that the new nick is valid and not in use.
 	std::string_view newNick = argv[0];
-	if (server->findClientByName(newNick)) {
+	if (server.findClientByName(newNick)) {
 		log::warn(user, " NICK: Nickname is already in use: ", newNick);
 		return sendNumeric("433", newNick, " :Nickname is already in use");
 	}
