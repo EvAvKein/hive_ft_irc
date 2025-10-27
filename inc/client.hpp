@@ -31,11 +31,11 @@ private:
 	bool isRegistered = false;		// Whether the client completed registration
 	bool isPassValid = false;		// Whether the client gave the correct password
 	bool disconnected = false;		// Set to true when the client is disconnected
-public:
-	std::string nick;				// The client's nickname
 	std::string user;				// The client's user name
 	std::string realname;			// The client's real name
 	std::string fullname;			// The full nick!user@host name
+	std::string nick;				// The client's nickname
+public:
 
 	std::string input;				// Buffered data from recv()
 
@@ -44,6 +44,8 @@ public:
 	void setChannelMode(Channel& channel, char* modes, char* args);
 	void clearChannels();
 	std::string_view getHost() const;
+	std::string_view getFullName() const;
+	std::string_view getNick() const;
 	bool isDisconnected() const;
 	void setDisconnected();
 

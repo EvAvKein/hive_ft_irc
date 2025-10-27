@@ -300,7 +300,7 @@ void Server::disconnectClient(Client& client, std::string_view reason)
 	// client from all channels it's a part of.
 	for (Channel* channel: client.allChannels()) {
 		for (Client* member: channel->allMembers())
-			member->sendLine(":", client.fullname, " QUIT :", reason);
+			member->sendLine(":", client.getFullName(), " QUIT :", reason);
 		channel->removeMember(client);
 	}
 	client.clearChannels();
@@ -349,7 +349,7 @@ Client& Server::newClient(int fd, std::string_view host)
 Client* Server::findClientByName(std::string_view name)
 {
 	for (auto& [fd, client]: clients)
-		if (client.nick == name)
+		if (client.getNick() == name)
 			return &client;
 	return nullptr;
 }

@@ -27,7 +27,7 @@ void Channel::addMember(Client& client)
 	members.insert(&client);
 	if (members.size() == 1) {
 		addOperator(client);
-		client.sendLine("MODE ", name, " +o ", client.nick);
+		client.sendLine("MODE ", name, " +o ", client.getNick());
 	}
 }
 
@@ -89,7 +89,7 @@ bool Channel::isValidName(std::string_view name)
 Client* Channel::findClientByName(std::string_view nick)
 {
 	for (Client* client: members)
-		if (client->nick == nick)
+		if (client->getNick() == nick)
 			return client;
 	return nullptr;
 }
@@ -289,8 +289,8 @@ std::string_view Channel::getTopicChange() const
 void Channel::setTopic(std::string_view newTopic, Client& client)
 {
 	topic = newTopic;
-	topicChangeStr = client.nick + " " + Server::getTimeString();
-	log::info(client.nick, " changed topic of ", name, " to: ", newTopic);
+	topicChangeStr = std::string(client.getNick()) + " " + Server::getTimeString();
+	log::info(client.getNick(), " changed topic of ", name, " to: ", newTopic);
 }
 
 /**

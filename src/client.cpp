@@ -53,6 +53,22 @@ std::string_view Client::getHost() const
 }
 
 /**
+ * Get the client's long-form name (in the form nick!user@host).
+ */
+std::string_view Client::getFullName() const
+{
+	return fullname;
+}
+
+/**
+ * Get the client's current nickname.
+ */
+std::string_view Client::getNick() const
+{
+	return nick;
+}
+
+/**
  * Check if the client has been marked as disconnected.
  */
 bool Client::isDisconnected() const
