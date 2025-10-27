@@ -92,7 +92,7 @@ void Client::handleJoin(int argc, char** argv)
 		log::info(nick, " JOIN: a JOIN message was sent to the joining client");
 
 		// Send the topic (with timestamp) if there is one.
-		if (!channel->hasTopic()) {
+		if (channel->hasTopic()) {
 			sendNumeric("332", name, " :", channel->getTopic());
 			sendNumeric("333", channel->getName(), " :", channel->getTopicChange());
 			log::info(nick, " JOIN: Sent the topic");
