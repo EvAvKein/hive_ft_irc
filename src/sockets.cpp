@@ -29,9 +29,9 @@ int Server::createListenSocket(const char* host, const char* port)
 	struct addrinfo hints = {}, *result;
 	int opt = 1;
 
-	hints.ai_family   = AF_INET;	   // IPv4 only
-	hints.ai_socktype = SOCK_STREAM;   // TCP
-	hints.ai_protocol = 0;			   // Any protocol
+	hints.ai_family   = AF_INET;		// IPv4 only (not IPv6).
+	hints.ai_socktype = SOCK_STREAM;	// TCP only (not UDP).
+	hints.ai_flags = AI_PASSIVE;   		// Accept any connections.
 
 	int status = getaddrinfo(host, port, &hints, &result);
 	if (status != 0)
