@@ -39,3 +39,4 @@ void safeClose(int& fd);
 bool matchIgnoreCase(const char* a, const char* b);
 char* nextListItem(char*& list, const char* delimiter = ",");
 bool parseInt(const char* input, int& output);
+bool isValidNameString(std::string_view string);

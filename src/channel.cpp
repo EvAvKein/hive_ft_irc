@@ -67,19 +67,13 @@ void Channel::removeOperator(Client& client)
 }
 
 /**
- * Determine if a string contains a valid channel name. A channel must start
- * with either a '#', and can't contain spaces, commas or the bell
- * character (of all things).
+ * Check if a string contains a valid channel name.
  */
 bool Channel::isValidName(std::string_view name)
 {
-	if (name.empty() || name.length() > CHANNELLEN
-		|| name[0] != '#')
-		return false;
-	for (char chr: name)
-		if (chr == ' ' || chr == ',' || chr == '\a')
-			return false;
-	return true;
+	return !name.empty()
+		&& name.length() <= CHANNELLEN
+		&& isValidNameString(name);
 }
 
 /**

@@ -1,3 +1,4 @@
+#include <cctype>
 #include <cstring>
 
 #include "client.hpp"
@@ -13,9 +14,7 @@ bool Client::isValidName(std::string_view name)
 {
 	return !name.empty()
 		&& name.length() <= NICKLEN
-		&& !name.starts_with(':')
-		&& !name.starts_with('#')
-		&& name.find(' ') == name.npos;
+		&& isValidNameString(name);
 }
 
 /**

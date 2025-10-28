@@ -2,6 +2,7 @@
 #include <cstring>
 #include <iostream>
 #include <unistd.h>
+#include <string_view>
 
 #include "utility.hpp"
 
@@ -62,5 +63,15 @@ bool parseInt(const char* input, int& output)
 	if (*input == '\0' || *end != '\0')
 		return false;
 	output = static_cast<int>(value);
+	return true;
+}
+
+bool isValidNameString(std::string_view string)
+{
+	static std::string_view forbidden = " ,:!@#*";
+
+	for (char c: string)
+		if ((forbidden.find(c) != forbidden.npos) || !std::isprint(c))
+			return false;
 	return true;
 }
