@@ -5,11 +5,18 @@
 #include "irc.hpp"
 #include <cstring>
 
+/**
+ * Handle a PRIVMSG message.
+ */
 void Client::handlePrivMsg(int argc, char** argv)
 {
-	// Check the parameter count.
-	if (!checkParams("PRIVMSG", true, argc, 1, 2))
-		return;
+	// Check parameters and registration.
+	if (!isRegistered)
+		return sendNumeric("451", ":You have not registered");
+	if (argc < 1)
+		return sendNumeric("411", " :No recipient given (PRIVMSG)");
+	if (argc < 2)
+		return sendNumeric("412", " :No text to send");
 
 	// Iterate over the list of message targets.
 	char* targetList = argv[0];
