@@ -58,6 +58,8 @@ void Client::setChannelMode(Channel& channel, char* mode, char* args)
 						}
 						argsOut += " " + std::string(key);
 					} else {
+						if (!channel.hasKey())
+							continue;
 						channel.removeKey();
 					}
 				} break;
@@ -117,8 +119,9 @@ void Client::setChannelMode(Channel& channel, char* mode, char* args)
 
 	// Broadcast a message to all other channel members containing only the
 	// modes that were actually applied.
-	for (Client* member: channel.allMembers())
-		member->sendLine(":", fullname, " MODE ", channel.getName(), " ", modeOut, argsOut);
+	if (!modeOut.empty())
+		for (Client* member: channel.allMembers())
+			member->sendLine(":", fullname, " MODE ", channel.getName(), " ", modeOut, argsOut);
 }
 
 /**
