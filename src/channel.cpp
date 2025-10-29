@@ -103,7 +103,7 @@ std::string Channel::getModes() const
 		modes += "t";
 	if (!key.empty())
 		modes += "k";
-	if (memberLimit > 0)
+	if (memberLimit < INT_MAX)
 		modes += "l " + std::to_string(memberLimit);
 	return modes.empty() ? "" : "+" + modes;
 }
