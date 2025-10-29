@@ -67,7 +67,7 @@ void Client::setChannelMode(Channel& channel, char* mode, char* args)
 				// +l: Set or remove the channel member limit.
 				case 'l': {
 					if (sign == '+') {
-						int limit;
+						int limit = 0;
 						if (!parseInt(nextListItem(args), limit) || limit <= 0) {
 							sendNumeric("696", channel.getName(), " l ", limit, " :Bad limit");
 							continue;
