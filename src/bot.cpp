@@ -42,7 +42,7 @@ void Bot::run(const char* port, const char* password)
 	event.events = EPOLLIN | EPOLLOUT | EPOLLET;
 	event.data.fd = socket;
 	if (epoll_ctl(epoll, EPOLL_CTL_ADD, socket, &event) == -1)
-		fail("Failed to add server socket to epoll: ", strerror(errno));
+		fail("Failed to add socket to epoll: ", strerror(errno));
 
 	// Start by sending credentials to the server.
 	sendLine("PASS ", password);
@@ -84,7 +84,7 @@ int Bot::connectToServer(const char* port)
 		if (status != 0)
 			fail("getaddrinfo() failed: ", gai_strerror(status));
 
-		// Create the listening socket.
+		// Create the socket.
 		socket = ::socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (socket == -1)
 			fail("socket() failed: ", strerror(errno));
@@ -223,6 +223,18 @@ void Bot::handleMessage(int argc, char** argv)
 	if (argc == 0)
 		return;
 	char* command = argv[0];
+
+	// Quit if ERROR is received.
+	if (argc > 0 && std::strcmp(command, "ERROR") == 0)
+		fail("ERROR message received from server");
+
+	// Quit if 433 (nick already in use) is received.
+	if (argc > 0 && std::strcmp(command, "433") == 0)
+		fail("Nickname already in use");
+
+	// Quit if 464 (password is incorrect) is received.
+	if (argc > 0 && std::strcmp(command, "464") == 0)
+		fail("Password is incorrect");
 
 	// Join any channels the bot is invited to.
 	if (argc == 3 && std::strcmp(command, "INVITE") == 0) {
