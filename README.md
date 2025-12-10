@@ -4,6 +4,8 @@ My 12th project at 42 Network's Hive Helsinki 🐝
 
 A standards-compliant IRC (Internet Relay Chat) server, implemented in C++
 
+https://github.com/user-attachments/assets/e2a23788-b88c-45b1-a42f-dbeac9704303
+
 > [!TIP]
 > If you're at a 42 school and doing this project: It's genuinely so much better to ask fellow students instead of reading online solutions ✨
 
